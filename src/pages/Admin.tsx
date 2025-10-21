@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Upload, CheckCircle, AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
-import { parsePdfQuestions } from "@/utils/parsePdfQuestions";
+import { parsePdfTableQuestions } from "@/utils/parsePdfTableQuestions";
 const Admin = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -60,7 +60,7 @@ const Admin = () => {
 
       // Parse text into questions using utility function
       console.log('Extracted text length:', text.length);
-      const questions = parsePdfQuestions(text);
+      const questions = parsePdfTableQuestions(text);
       console.log(`Parsed ${questions.length} questions from PDF`);
 
       if (!questions.length) throw new Error('Nie udało się znaleźć pytań w PDF.');
