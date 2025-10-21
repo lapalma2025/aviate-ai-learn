@@ -1,4 +1,8 @@
 // Helper to parse questions from PDF text
+import type { Database } from "@/integrations/supabase/types";
+
+type QuestionCategory = Database['public']['Enums']['question_category'];
+
 export interface ParsedQuestion {
   question: string;
   answer_a: string;
@@ -6,7 +10,7 @@ export interface ParsedQuestion {
   answer_c: string;
   answer_d: string;
   correct_answer: string;
-  category: string;
+  category: QuestionCategory;
 }
 
 export function parsePdfQuestions(text: string): ParsedQuestion[] {

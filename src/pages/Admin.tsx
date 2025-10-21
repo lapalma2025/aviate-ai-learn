@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Upload, CheckCircle, AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import { parsePdfQuestions } from "@/utils/parsePdfQuestions";
 const Admin = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -57,76 +58,42 @@ const Admin = () => {
 
       setProgress(50);
 
-      // Parse text into questions - more flexible parsing
+      // Parse text into questions using utility function
       console.log('Extracted text length:', text.length);
-      console.log('First 500 chars:', text.substring(0, 500));
-      
-      const textLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      const questions: any[] = [];
-      let currentQuestion: any = null;
-
-      for (let i = 0; i < textLines.length; i++) {
-        const line = textLines[i];
-        
-        // Match question number more flexibly
-        const questionMatch = line.match(/^(\d+)[\.\)]\s*(.+)/);
-        if (questionMatch) {
-          const potentialQuestion = questionMatch[2].trim();
-          // Only treat as new question if it doesn't start with A/B/C/D
-          if (!potentialQuestion.match(/^[A-D][\.\)]/)) {
-            // Save previous question if complete
-            if (currentQuestion && currentQuestion.answer_a && currentQuestion.answer_b && currentQuestion.answer_c && currentQuestion.answer_d) {
-              questions.push(currentQuestion);
-            }
-            currentQuestion = {
-              question: potentialQuestion,
-              answer_a: '',
-              answer_b: '',
-              answer_c: '',
-              answer_d: '',
-              correct_answer: 'A',
-              category: 'operational_procedures'
-            };
-            continue;
-          }
-        }
-        
-        // Parse answers - support both . and ) formats
-        if (currentQuestion) {
-          const answerMatch = line.match(/^([A-D])[\.\)]\s*(.+)/);
-          if (answerMatch) {
-            const key = answerMatch[1];
-            const text = answerMatch[2].trim();
-            if (key === 'A') currentQuestion.answer_a = text;
-            else if (key === 'B') currentQuestion.answer_b = text;
-            else if (key === 'C') currentQuestion.answer_c = text;
-            else if (key === 'D') currentQuestion.answer_d = text;
-          } else if (line.length > 0) {
-            // Continuation of previous text
-            if (currentQuestion.answer_d) currentQuestion.answer_d += ' ' + line;
-            else if (currentQuestion.answer_c) currentQuestion.answer_c += ' ' + line;
-            else if (currentQuestion.answer_b) currentQuestion.answer_b += ' ' + line;
-            else if (currentQuestion.answer_a) currentQuestion.answer_a += ' ' + line;
-            else currentQuestion.question += ' ' + line;
-          }
-        }
-      }
-      
-      // Add last question
-      if (currentQuestion && currentQuestion.answer_a && currentQuestion.answer_b && currentQuestion.answer_c && currentQuestion.answer_d) {
-        questions.push(currentQuestion);
-      }
-
+      const questions = parsePdfQuestions(text);
       console.log(`Parsed ${questions.length} questions from PDF`);
 
       if (!questions.length) throw new Error('Nie udało się znaleźć pytań w PDF.');
 
       setProgress(70);
 
-      // Insert directly (RLS allows admin inserts)
+      // Get existing questions to avoid duplicates
+      const { data: existingQuestions } = await supabase
+        .from('questions')
+        .select('question');
+      
+      const existingTexts = new Set(
+        existingQuestions?.map(q => q.question.substring(0, 50).toLowerCase()) || []
+      );
+
+      // Filter out duplicates
+      const newQuestions = questions.filter(q => {
+        const key = q.question.substring(0, 50).toLowerCase();
+        return !existingTexts.has(key);
+      });
+
+      console.log(`Filtered to ${newQuestions.length} new questions (${questions.length - newQuestions.length} duplicates skipped)`);
+
+      if (!newQuestions.length) {
+        throw new Error('Wszystkie pytania już istnieją w bazie danych.');
+      }
+
+      setProgress(80);
+
+      // Insert new questions (RLS allows admin inserts)
       const { data, error } = await supabase
         .from('questions')
-        .insert(questions)
+        .insert(newQuestions)
         .select();
 
       if (error) throw error;
