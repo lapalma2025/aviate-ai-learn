@@ -13,6 +13,28 @@ export interface ParsedQuestion {
   category: QuestionCategory;
 }
 
+// Category keyword mappings - using 'as any' because types file hasn't regenerated yet
+const CATEGORY_KEYWORDS: Record<string, any> = {
+  'PL010': 'air_law',
+  'PL020': 'aircraft_general_knowledge',
+  'PL030': 'flight_performance_planning',
+  'PL040': 'meteorology',
+  'PL050': 'navigation',
+  'PL060': 'operational_procedures',
+  'PL070': 'principles_of_flight',
+  'PL080': 'communications',
+};
+
+function detectCategory(code: string): QuestionCategory {
+  const upperCode = code.toUpperCase();
+  for (const [keyword, category] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (upperCode.includes(keyword)) {
+      return category as any;
+    }
+  }
+  return 'operational_procedures' as any;
+}
+
 export function parsePdfQuestions(text: string): ParsedQuestion[] {
   const questions: ParsedQuestion[] = [];
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -21,94 +43,152 @@ export function parsePdfQuestions(text: string): ParsedQuestion[] {
   while (i < lines.length) {
     const line = lines[i];
     
-    // Try to find table row with question (starts with number followed by | PL)
-    const tableMatch = line.match(/^\|?\s*(\d+)\s*\|?\s*(PL\s*[\d\-]+)\s*\|?\s*(.+)/i);
+    // Pattern 1: Table format with question number | Code | Question
+    // Example: | 1 | PL010-0001 | What is the question? |
+    const tableMatch = line.match(/^\|?\s*(\d+)\s*\|?\s*(PL\s*\d+[\-\d]*)\s*\|?\s*(.+)/i);
     if (tableMatch) {
-      const questionText = tableMatch[3].replace(/\|/g, ' ').trim();
+      const questionNum = tableMatch[1];
+      const code = tableMatch[2];
+      let questionText = tableMatch[3].replace(/\|+$/, '').trim();
       
-      // Look for answer row (next line might contain answers separated by |)
-      let answers: string[] = [];
+      // Continue reading if question spans multiple lines
       let j = i + 1;
-      while (j < lines.length && answers.length < 4) {
-        const nextLine = lines[j].replace(/^\|/, '').replace(/\|$/, '');
-        const parts = nextLine.split('|').map(p => p.trim()).filter(p => p.length > 0 && !p.match(/^[\-\s]+$/));
-        
-        if (parts.length > 0 && !parts[0].match(/^\d+$/) && !parts[0].match(/^PL\s*[\d\-]+$/i)) {
-          answers.push(...parts);
+      while (j < lines.length && !lines[j].match(/^\|?\s*\d+\s*\|?\s*PL/i) && !lines[j].match(/^[A-D]\)/i)) {
+        const nextLine = lines[j].replace(/^\|/, '').replace(/\|$/, '').trim();
+        if (nextLine && !nextLine.match(/^[\-\s\|]+$/)) {
+          questionText += ' ' + nextLine;
         }
-        
-        if (answers.length >= 4 || nextLine.match(/^\|?\s*\d+\s*\|?\s*PL/i)) break;
         j++;
+        if (j - i > 5) break; // Don't read too far
       }
       
-      if (questionText.length > 5 && answers.length >= 4) {
+      // Look for answers in format: A) answer, B) answer, C) answer, D) answer
+      const answers: { [key: string]: string } = {};
+      let correctAnswer = 'A';
+      
+      while (j < lines.length && Object.keys(answers).length < 4) {
+        const answerLine = lines[j];
+        
+        // Stop if we hit the next question
+        if (answerLine.match(/^\|?\s*\d+\s*\|?\s*PL/i)) break;
+        
+        // Match answer format: A) text or A. text or just A text
+        const answerMatch = answerLine.match(/^([A-D])[)\.]?\s*(.+)/i);
+        if (answerMatch) {
+          const letter = answerMatch[1].toUpperCase();
+          let answerText = answerMatch[2].trim();
+          
+          // Check if answer has a correct indicator
+          if (answerText.includes('*') || answerText.includes('✓') || answerText.includes('(correct)')) {
+            correctAnswer = letter;
+            answerText = answerText.replace(/[\*✓]/g, '').replace(/\(correct\)/i, '').trim();
+          }
+          
+          answers[letter] = answerText;
+        }
+        
+        j++;
+        if (j - i > 20) break; // Safety limit
+      }
+      
+      // Create question if we have all answers
+      if (questionText.length > 10 && Object.keys(answers).length >= 4) {
         questions.push({
           question: questionText,
-          answer_a: answers[0] || '',
-          answer_b: answers[1] || '',
-          answer_c: answers[2] || '',
-          answer_d: answers[3] || '',
-          correct_answer: 'A',
-          category: 'operational_procedures'
+          answer_a: answers['A'] || '',
+          answer_b: answers['B'] || '',
+          answer_c: answers['C'] || '',
+          answer_d: answers['D'] || '',
+          correct_answer: correctAnswer,
+          category: detectCategory(code) as any
         });
       }
       
-      i = j > i ? j : i + 1;
+      i = j;
+      continue;
     }
-    // Try to find standalone question (format: # 123 PL010-xxxx Question text)
-    else if (line.match(/^#\s*\d+/)) {
-      const questionParts: string[] = [];
-      let k = i;
+    
+    // Pattern 2: Standalone question format
+    // Example: 123. Question text?
+    const standaloneMatch = line.match(/^(\d+)[\.\)]\s+(.+)/);
+    if (standaloneMatch) {
+      const questionNum = standaloneMatch[1];
+      let questionText = standaloneMatch[2].trim();
       
-      // Collect question text until we find answers or next question
-      while (k < lines.length) {
-        const l = lines[k];
-        if (k > i && l.match(/^#\s*\d+/)) break;
-        if (!l.match(/^(#|PL\d+\-\d+|Page|\d+|---|###)/i)) {
-          questionParts.push(l);
-        }
-        k++;
-        if (k > i + 20) break;
+      // Check for category code in the question
+      let category: any = 'operational_procedures';
+      const codeMatch = questionText.match(/PL\s*\d+[\-\d]*/i);
+      if (codeMatch) {
+        category = detectCategory(codeMatch[0]);
       }
       
-      const fullText = questionParts.join(' ').trim();
-      
-      // Try to extract answers from text
-      const answerCandidates: string[] = [];
-      const sentencesAndPhrases = fullText.split(/(?:[.;]|\band\b)/);
-      
-      for (const part of sentencesAndPhrases) {
-        const cleaned = part.trim();
-        if (cleaned.length > 5 && cleaned.length < 200) {
-          answerCandidates.push(cleaned);
+      // Continue reading question text
+      let j = i + 1;
+      while (j < lines.length && !lines[j].match(/^[A-D][)\.]/) && !lines[j].match(/^\d+[\.\)]/)) {
+        const nextLine = lines[j].trim();
+        if (nextLine && nextLine.length > 0) {
+          questionText += ' ' + nextLine;
         }
+        j++;
+        if (j - i > 5) break;
       }
       
-      // If we have enough text, create a question
-      if (fullText.length > 20 && answerCandidates.length >= 4) {
-        const questionText = answerCandidates[0];
+      // Look for answers
+      const answers: { [key: string]: string } = {};
+      let correctAnswer = 'A';
+      
+      while (j < lines.length && Object.keys(answers).length < 4) {
+        const answerLine = lines[j];
+        
+        // Stop if we hit the next question
+        if (answerLine.match(/^\d+[\.\)]\s+/)) break;
+        
+        const answerMatch = answerLine.match(/^([A-D])[)\.]?\s*(.+)/i);
+        if (answerMatch) {
+          const letter = answerMatch[1].toUpperCase();
+          let answerText = answerMatch[2].trim();
+          
+          // Check for correct answer indicators
+          if (answerText.includes('*') || answerText.includes('✓') || answerText.includes('(correct)')) {
+            correctAnswer = letter;
+            answerText = answerText.replace(/[\*✓]/g, '').replace(/\(correct\)/i, '').trim();
+          }
+          
+          answers[letter] = answerText;
+        }
+        
+        j++;
+        if (j - i > 20) break;
+      }
+      
+      // Create question if valid
+      if (questionText.length > 10 && Object.keys(answers).length >= 4) {
         questions.push({
           question: questionText,
-          answer_a: answerCandidates[1] || answerCandidates[0],
-          answer_b: answerCandidates[2] || answerCandidates[1] || answerCandidates[0],
-          answer_c: answerCandidates[3] || answerCandidates[2] || answerCandidates[0],
-          answer_d: answerCandidates[4] || answerCandidates[3] || answerCandidates[0],
-          correct_answer: 'A',
-          category: 'operational_procedures'
+          answer_a: answers['A'] || '',
+          answer_b: answers['B'] || '',
+          answer_c: answers['C'] || '',
+          answer_d: answers['D'] || '',
+          correct_answer: correctAnswer,
+          category: category
         });
       }
       
-      i = k;
-    } else {
-      i++;
+      i = j;
+      continue;
     }
+    
+    i++;
   }
   
   // Filter out duplicates and invalid questions
   const unique = new Map<string, ParsedQuestion>();
   for (const q of questions) {
     const key = q.question.substring(0, 50).toLowerCase();
-    if (!unique.has(key) && q.answer_a !== q.answer_b && q.answer_a.length > 3) {
+    if (!unique.has(key) && 
+        q.answer_a !== q.answer_b && 
+        q.answer_a.length > 2 &&
+        q.question.length > 10) {
       unique.set(key, q);
     }
   }

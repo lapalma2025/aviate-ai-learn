@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, CheckCircle, XCircle, MessageSquare, Sparkles } from "lucide-react";
+import { BookOpen, CheckCircle, XCircle, MessageSquare, Sparkles, Filter } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Question {
   id: string;
@@ -23,6 +24,18 @@ type DisplayAnswer = {
   isCorrect: boolean;
 };
 
+const CATEGORIES = [
+  { value: "all", label: "Wszystkie kategorie" },
+  { value: "air_law", label: "Prawo lotnicze" },
+  { value: "aircraft_general_knowledge", label: "Ogólna wiedza o statku powietrznym" },
+  { value: "flight_performance_planning", label: "Osiągi i planowanie lotu" },
+  { value: "meteorology", label: "Meteorologia" },
+  { value: "navigation", label: "Nawigacja" },
+  { value: "operational_procedures", label: "Procedury operacyjne" },
+  { value: "principles_of_flight", label: "Zasady lotu" },
+  { value: "communications", label: "Łączność" },
+];
+
 const Learn = () => {
   const [question, setQuestion] = useState<Question | null>(null);
   const [answers, setAnswers] = useState<DisplayAnswer[]>([]);
@@ -32,6 +45,7 @@ const Learn = () => {
   const [explanation, setExplanation] = useState<string>("");
   const [userQuestion, setUserQuestion] = useState("");
   const [askingAI, setAskingAI] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { toast } = useToast();
 
   const loadRandomQuestion = async () => {
@@ -43,10 +57,13 @@ const Learn = () => {
     setAnswers([]);
 
     try {
-      const { data, error } = await supabase
-        .from('questions')
-        .select('*')
-        .limit(100);
+      let query = supabase.from('questions').select('*');
+      
+      if (selectedCategory !== "all") {
+        query = query.eq('category', selectedCategory as any);
+      }
+      
+      const { data, error } = await query.limit(100);
 
       if (error) throw error;
 
@@ -56,7 +73,9 @@ const Learn = () => {
       } else {
         toast({
           title: "Brak pytań",
-          description: "Administrator musi najpierw załadować pytania do bazy.",
+          description: selectedCategory !== "all" 
+            ? "Brak pytań w wybranej kategorii. Administrator musi załadować pytania."
+            : "Administrator musi najpierw załadować pytania do bazy.",
           variant: "destructive",
         });
       }
@@ -159,7 +178,7 @@ const Learn = () => {
 
   useEffect(() => {
     loadRandomQuestion();
-  }, []);
+  }, [selectedCategory]);
 
   if (loading) {
     return (
@@ -189,21 +208,46 @@ const Learn = () => {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <BookOpen className="h-8 w-8 text-primary" />
-            Tryb nauki
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Ucz się w swoim tempie z wyjaśnieniami AI
-          </p>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <BookOpen className="h-8 w-8 text-primary" />
+              Tryb nauki
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Ucz się w swoim tempie z wyjaśnieniami AI
+            </p>
+          </div>
+          {question.category && (
+            <Badge variant="secondary" className="capitalize">
+              {CATEGORIES.find(c => c.value === question.category)?.label || question.category.replace(/_/g, ' ')}
+            </Badge>
+          )}
         </div>
-        {question.category && (
-          <Badge variant="secondary" className="capitalize">
-            {question.category.replace(/_/g, ' ')}
-          </Badge>
-        )}
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Wybierz kategorię pytań
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Wybierz kategorię" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
