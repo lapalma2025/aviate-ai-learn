@@ -18,7 +18,7 @@ const Admin = () => {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<{ success: boolean; count: number } | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [genResult, setGenResult] = useState<{ processed: number; failed: number; total: number } | null>(null);
+  const [genResult, setGenResult] = useState<{ processed: number; failed: number; batchSize: number; remaining: number } | null>(null);
   const { toast } = useToast();
 
   const handlePdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,12 +170,17 @@ const Admin = () => {
       setGenResult({
         processed: data.processed || 0,
         failed: data.failed || 0,
-        total: data.total || 0,
+        batchSize: data.batchSize || 0,
+        remaining: data.remaining || 0,
       });
 
+      const remainingMsg = data.remaining > 0 
+        ? ` Pozostało: ${data.remaining} pytań.`
+        : ' Wszystkie gotowe!';
+
       toast({
-        title: 'Generowanie zakończone',
-        description: `Wygenerowano ${data.processed} wyjaśnień (${data.failed} błędów)`,
+        title: data.remaining > 0 ? 'Batch wygenerowany' : 'Wszystko gotowe!',
+        description: `Wygenerowano ${data.processed} wyjaśnień.${remainingMsg}`,
       });
     } catch (error: any) {
       console.error('Generation error:', error);
@@ -378,15 +383,31 @@ const Admin = () => {
               )}
 
               {genResult && (
-                <div className="p-4 rounded-md bg-primary/10 border border-primary/20">
+                <div className={`p-4 rounded-md border ${
+                  genResult.remaining === 0 
+                    ? 'bg-success/10 border-success/20' 
+                    : 'bg-primary/10 border-primary/20'
+                }`}>
                   <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
+                    <CheckCircle className={`h-5 w-5 mt-0.5 ${
+                      genResult.remaining === 0 ? 'text-success' : 'text-primary'
+                    }`} />
                     <div className="space-y-1">
-                      <p className="font-medium">Generowanie zakończone</p>
+                      <p className="font-medium">
+                        {genResult.remaining === 0 ? 'Wszystko gotowe!' : 'Batch przetworzony'}
+                      </p>
                       <div className="text-sm space-y-0.5">
                         <p>✅ Wygenerowano: {genResult.processed}</p>
                         {genResult.failed > 0 && <p>❌ Błędy: {genResult.failed}</p>}
-                        <p>📊 Razem pytań: {genResult.total}</p>
+                        {genResult.remaining > 0 ? (
+                          <p className="font-medium text-primary">
+                            📊 Pozostało: {genResult.remaining} pytań - kliknij ponownie!
+                          </p>
+                        ) : (
+                          <p className="font-medium text-success">
+                            🎉 Wszystkie pytania mają wyjaśnienia!
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -394,20 +415,24 @@ const Admin = () => {
               )}
 
               <div className="p-4 bg-muted rounded-md space-y-2">
-                <p className="text-sm font-medium">ℹ️ Informacja:</p>
+                <p className="text-sm font-medium">ℹ️ Jak to działa:</p>
                 <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Proces wygeneruje wyjaśnienia tylko dla pytań bez wyjaśnień</li>
-                  <li>Pytania z istniejącymi wyjaśnieniami zostaną pominięte</li>
-                  <li>Generowanie może zużyć kredyty AI w zależności od liczby pytań</li>
+                  <li>Funkcja przetwarza 20 pytań na raz (unikanie timeoutów)</li>
+                  <li>Po zakończeniu batcha, kliknij ponownie aby kontynuować</li>
+                  <li>Powtarzaj aż wszystkie pytania będą gotowe</li>
+                  <li>Pytania z istniejącymi wyjaśnieniami są pomijane</li>
                 </ul>
               </div>
 
               <Button 
                 onClick={handleGenerateExplanations} 
-                disabled={generating}
+                disabled={generating || (genResult?.remaining === 0)}
                 className="w-full"
               >
-                {generating ? 'Generowanie...' : 'Generuj wyjaśnienia dla wszystkich pytań'}
+                {generating ? 'Generowanie batcha...' : 
+                 genResult?.remaining === 0 ? 'Wszystkie pytania gotowe ✓' :
+                 genResult?.remaining ? `Generuj kolejne 20 (pozostało ${genResult.remaining})` :
+                 'Rozpocznij generowanie wyjaśnień'}
               </Button>
             </CardContent>
           </Card>

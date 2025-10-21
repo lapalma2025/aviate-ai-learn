@@ -22,19 +22,30 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get all questions without explanations
+    // Get questions without explanations (limit to 20 per batch to avoid timeout)
     const { data: questions, error: fetchError } = await supabase
       .from('questions')
       .select('*')
-      .is('explanation', null);
+      .is('explanation', null)
+      .limit(20);
 
     if (fetchError) throw fetchError;
 
     console.log(`Found ${questions?.length || 0} questions without explanations`);
 
     if (!questions || questions.length === 0) {
+      // Check total count
+      const { count } = await supabase
+        .from('questions')
+        .select('*', { count: 'exact', head: true })
+        .is('explanation', null);
+      
       return new Response(
-        JSON.stringify({ message: 'All questions already have explanations', processed: 0 }),
+        JSON.stringify({ 
+          message: 'All questions already have explanations', 
+          processed: 0,
+          remaining: count || 0 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -94,7 +105,7 @@ WAŻNE: NIE używaj formatowania markdown - nie używaj gwiazdek (**), podkreśl
         }
 
         // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
       } catch (error) {
         console.error(`Error processing question ${question.id}:`, error);
@@ -102,12 +113,19 @@ WAŻNE: NIE używaj formatowania markdown - nie używaj gwiazdek (**), podkreśl
       }
     }
 
+    // Check how many questions still need processing
+    const { count: remainingCount } = await supabase
+      .from('questions')
+      .select('*', { count: 'exact', head: true })
+      .is('explanation', null);
+
     return new Response(
       JSON.stringify({ 
-        message: 'Explanations generated successfully', 
+        message: processed > 0 ? 'Batch completed successfully' : 'No questions processed', 
         processed, 
         failed,
-        total: questions.length 
+        batchSize: questions.length,
+        remaining: remainingCount || 0
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
