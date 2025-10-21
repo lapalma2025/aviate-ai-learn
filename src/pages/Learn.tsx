@@ -185,8 +185,7 @@ const Learn = () => {
   }
 
   // answers are prepared in state with random order
-
-  const isCorrect = selectedAnswer === question.correct_answer;
+  const isCorrect = selectedIndex !== null && answers[selectedIndex]?.isCorrect;
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -212,9 +211,9 @@ const Learn = () => {
           <CardTitle className="text-xl">{question.question}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {answers.map((answer) => {
-            const isSelected = selectedAnswer === answer.key;
-            const isCorrectAnswer = answer.key === question.correct_answer;
+          {answers.map((answer, index) => {
+            const isSelected = selectedIndex === index;
+            const isCorrectAnswer = answer.isCorrect;
             
             let buttonClass = "w-full justify-start text-left h-auto py-4 px-4";
             if (showResult) {
@@ -227,13 +226,12 @@ const Learn = () => {
 
             return (
               <Button
-                key={answer.key}
+                key={index}
                 variant={isSelected && !showResult ? "default" : "outline"}
                 className={buttonClass}
-                onClick={() => !showResult && handleAnswer(answer.key)}
+                onClick={() => !showResult && handleAnswer(index)}
                 disabled={showResult}
               >
-                <span className="font-bold mr-3">{answer.key}.</span>
                 <span className="flex-1">{answer.text}</span>
                 {showResult && isCorrectAnswer && (
                   <CheckCircle className="h-5 w-5 text-success ml-2" />
@@ -265,7 +263,7 @@ const Learn = () => {
             </CardTitle>
             {!isCorrect && (
               <CardDescription>
-                Prawidłowa odpowiedź to: {question.correct_answer}
+                Prawidłowa odpowiedź: {answers.find(a => a.isCorrect)?.text || question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string}
               </CardDescription>
             )}
           </CardHeader>

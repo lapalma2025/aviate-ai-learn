@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as pdfjsLib from "https://esm.sh/pdfjs-dist@3.11.174/build/pdf.js";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,8 +27,17 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
     
-    // Convert buffer to text and parse questions
-    const text = new TextDecoder('utf-8').decode(buffer);
+    // Parse PDF to extract text using pdfjs
+    const loadingTask = pdfjsLib.getDocument({ data: buffer });
+    const pdf = await loadingTask.promise;
+    
+    let text = '';
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const content = await page.getTextContent();
+      const pageText = content.items.map((item: any) => item.str).join(' ');
+      text += pageText + '\n';
+    }
     
     // Parse pattern: Question number, text, A. B. C. D. answers
     const questionPattern = /(\d+)\.\s*([^A-D]+?)(?=A\.)/gs;
