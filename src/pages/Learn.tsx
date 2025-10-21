@@ -135,9 +135,8 @@ const Learn = () => {
       console.error('Error saving progress:', error);
     }
 
-    if (isCorrect) {
-      getAIExplanation();
-    }
+    // Get AI explanation for both correct and incorrect answers
+    getAIExplanation();
   };
 
   const getAIExplanation = async (customQuestion?: string) => {

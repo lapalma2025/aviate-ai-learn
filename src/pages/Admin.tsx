@@ -121,18 +121,18 @@ const Admin = () => {
   const insertQuestions = async (questions: any[]) => {
     setProgress(60);
 
-    // Get existing question codes to avoid duplicates
+    // Get existing questions by text to avoid duplicates
     const { data: existingQuestions } = await supabase
       .from('questions')
-      .select('question_code');
+      .select('question');
     
-    const existingCodes = new Set(
-      existingQuestions?.map(q => q.question_code).filter(Boolean) || []
+    const existingTexts = new Set(
+      existingQuestions?.map(q => q.question) || []
     );
 
     // Filter out duplicates
     const newQuestions = questions.filter(q => {
-      return q.question_code && !existingCodes.has(q.question_code);
+      return !existingTexts.has(q.question);
     });
 
     console.log(`Filtered to ${newQuestions.length} new questions (${questions.length - newQuestions.length} duplicates skipped)`);

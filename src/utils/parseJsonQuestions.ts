@@ -17,13 +17,14 @@ export interface ParsedQuestion {
 // Map PL codes to categories
 const CATEGORY_MAP: Record<string, QuestionCategory> = {
   'PL010': 'air_law',
-  'PL020': 'aircraft_general_knowledge',
-  'PL030': 'flight_performance_planning',
-  'PL040': 'meteorology',
-  'PL050': 'navigation',
-  'PL060': 'operational_procedures',
-  'PL070': 'principles_of_flight',
-  'PL080': 'communications',
+  'PL020': 'aircraft_general',
+  'PL030': 'flight_performance',
+  'PL040': 'human_performance',
+  'PL050': 'meteorology',
+  'PL060': 'navigation',
+  'PL070': 'operational_procedures',
+  'PL080': 'principles_of_flight',
+  'PL090': 'communications',
   'PL100': 'operational_procedures',
 };
 
