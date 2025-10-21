@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, CheckCircle, AlertCircle, FileJson } from "lucide-react";
+import { Upload, CheckCircle, AlertCircle, FileJson, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
@@ -17,6 +17,8 @@ const Admin = () => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<{ success: boolean; count: number } | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [genResult, setGenResult] = useState<{ processed: number; failed: number; total: number } | null>(null);
   const { toast } = useToast();
 
   const handlePdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,6 +158,37 @@ const Admin = () => {
     toast({ title: 'Sukces!', description: `Zaimportowano ${data?.length || 0} pytań do bazy.` });
   };
 
+  const handleGenerateExplanations = async () => {
+    setGenerating(true);
+    setGenResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-explanations');
+
+      if (error) throw error;
+
+      setGenResult({
+        processed: data.processed || 0,
+        failed: data.failed || 0,
+        total: data.total || 0,
+      });
+
+      toast({
+        title: 'Generowanie zakończone',
+        description: `Wygenerowano ${data.processed} wyjaśnień (${data.failed} błędów)`,
+      });
+    } catch (error: any) {
+      console.error('Generation error:', error);
+      toast({
+        title: 'Błąd generowania',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -166,9 +199,10 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="json" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="json">Import JSON</TabsTrigger>
           <TabsTrigger value="pdf">Import PDF</TabsTrigger>
+          <TabsTrigger value="generate">Generuj AI</TabsTrigger>
         </TabsList>
         
         <TabsContent value="json">
@@ -314,6 +348,66 @@ const Admin = () => {
                 className="w-full"
               >
                 {uploading ? 'Importowanie...' : 'Importuj pytania'}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="generate">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Generuj wyjaśnienia AI
+              </CardTitle>
+              <CardDescription>
+                Automatycznie wygeneruj wyjaśnienia AI dla wszystkich pytań, które jeszcze ich nie mają.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {generating && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                    <span className="font-medium text-sm">Generowanie wyjaśnień...</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    To może potrwać kilka minut w zależności od liczby pytań
+                  </p>
+                </div>
+              )}
+
+              {genResult && (
+                <div className="p-4 rounded-md bg-primary/10 border border-primary/20">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="font-medium">Generowanie zakończone</p>
+                      <div className="text-sm space-y-0.5">
+                        <p>✅ Wygenerowano: {genResult.processed}</p>
+                        {genResult.failed > 0 && <p>❌ Błędy: {genResult.failed}</p>}
+                        <p>📊 Razem pytań: {genResult.total}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="p-4 bg-muted rounded-md space-y-2">
+                <p className="text-sm font-medium">ℹ️ Informacja:</p>
+                <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Proces wygeneruje wyjaśnienia tylko dla pytań bez wyjaśnień</li>
+                  <li>Pytania z istniejącymi wyjaśnieniami zostaną pominięte</li>
+                  <li>Generowanie może zużyć kredyty AI w zależności od liczby pytań</li>
+                </ul>
+              </div>
+
+              <Button 
+                onClick={handleGenerateExplanations} 
+                disabled={generating}
+                className="w-full"
+              >
+                {generating ? 'Generowanie...' : 'Generuj wyjaśnienia dla wszystkich pytań'}
               </Button>
             </CardContent>
           </Card>

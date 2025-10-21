@@ -17,6 +17,7 @@ interface Question {
   answer_d: string;
   correct_answer: string;
   category: string;
+  explanation: string | null;
 }
 
 type DisplayAnswer = {
@@ -122,29 +123,15 @@ const Learn = () => {
     const picked = answers[index];
     const isCorrect = !!picked?.isCorrect;
 
+    // First, check if question has a pre-generated explanation
+    if (question?.explanation) {
+      setExplanation(question.explanation);
+    }
+
+    // Save progress
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user && question) {
-        // Check if we already have cached explanation for this question
-        const { data: cachedProgress } = await supabase
-          .from('user_progress')
-          .select('explanation')
-          .eq('user_id', user.id)
-          .eq('question_id', question.id)
-          .not('explanation', 'is', null)
-          .order('answered_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (cachedProgress?.explanation) {
-          // Use cached explanation
-          setExplanation(cachedProgress.explanation);
-        } else {
-          // Generate new explanation
-          await getAIExplanation();
-        }
-
-        // Save new progress entry
         await supabase.from('user_progress').insert({
           user_id: user.id,
           question_id: question.id,
@@ -153,8 +140,6 @@ const Learn = () => {
       }
     } catch (error) {
       console.error('Error saving progress:', error);
-      // If no cache found, generate explanation
-      await getAIExplanation();
     }
   };
 
@@ -176,29 +161,6 @@ const Learn = () => {
       if (error) throw error;
 
       setExplanation(data.explanation);
-
-      // Save explanation to cache if this is the first time (not a custom question)
-      if (!customQuestion) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && question) {
-          // Update the most recent progress entry with the explanation
-          const { data: recentProgress } = await supabase
-            .from('user_progress')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('question_id', question.id)
-            .order('answered_at', { ascending: false })
-            .limit(1)
-            .single();
-
-          if (recentProgress) {
-            await supabase
-              .from('user_progress')
-              .update({ explanation: data.explanation })
-              .eq('id', recentProgress.id);
-          }
-        }
-      }
     } catch (error: any) {
       toast({
         title: "Błąd AI",
