@@ -57,42 +57,67 @@ const Admin = () => {
 
       setProgress(50);
 
-      // Parse text into questions
-      const textLines = text.split('\n');
+      // Parse text into questions - more flexible parsing
+      console.log('Extracted text length:', text.length);
+      console.log('First 500 chars:', text.substring(0, 500));
+      
+      const textLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       const questions: any[] = [];
       let currentQuestion: any = null;
 
       for (let i = 0; i < textLines.length; i++) {
-        const line = textLines[i].trim();
-        const questionMatch = line.match(/^(\d+)\.\s*(.+)/);
-        if (questionMatch && !line.startsWith('A.') && !line.startsWith('B.') && !line.startsWith('C.') && !line.startsWith('D.')) {
-          if (currentQuestion && currentQuestion.answer_a && currentQuestion.answer_b && currentQuestion.answer_c && currentQuestion.answer_d) {
-            questions.push(currentQuestion);
+        const line = textLines[i];
+        
+        // Match question number more flexibly
+        const questionMatch = line.match(/^(\d+)[\.\)]\s*(.+)/);
+        if (questionMatch) {
+          const potentialQuestion = questionMatch[2].trim();
+          // Only treat as new question if it doesn't start with A/B/C/D
+          if (!potentialQuestion.match(/^[A-D][\.\)]/)) {
+            // Save previous question if complete
+            if (currentQuestion && currentQuestion.answer_a && currentQuestion.answer_b && currentQuestion.answer_c && currentQuestion.answer_d) {
+              questions.push(currentQuestion);
+            }
+            currentQuestion = {
+              question: potentialQuestion,
+              answer_a: '',
+              answer_b: '',
+              answer_c: '',
+              answer_d: '',
+              correct_answer: 'A',
+              category: 'operational_procedures'
+            };
+            continue;
           }
-          currentQuestion = {
-            question: questionMatch[2].trim(),
-            answer_a: '',
-            answer_b: '',
-            answer_c: '',
-            answer_d: '',
-            correct_answer: 'A',
-            category: 'operational_procedures'
-          };
-        } else if (currentQuestion) {
-          if (line.startsWith('A.')) currentQuestion.answer_a = line.substring(2).trim();
-          else if (line.startsWith('B.')) currentQuestion.answer_b = line.substring(2).trim();
-          else if (line.startsWith('C.')) currentQuestion.answer_c = line.substring(2).trim();
-          else if (line.startsWith('D.')) currentQuestion.answer_d = line.substring(2).trim();
-          else if (currentQuestion.answer_a && !currentQuestion.answer_b) currentQuestion.answer_a += ' ' + line;
-          else if (currentQuestion.answer_b && !currentQuestion.answer_c) currentQuestion.answer_b += ' ' + line;
-          else if (currentQuestion.answer_c && !currentQuestion.answer_d) currentQuestion.answer_c += ' ' + line;
-          else if (currentQuestion.answer_d) currentQuestion.answer_d += ' ' + line;
-          else if (!currentQuestion.answer_a) currentQuestion.question += ' ' + line;
+        }
+        
+        // Parse answers - support both . and ) formats
+        if (currentQuestion) {
+          const answerMatch = line.match(/^([A-D])[\.\)]\s*(.+)/);
+          if (answerMatch) {
+            const key = answerMatch[1];
+            const text = answerMatch[2].trim();
+            if (key === 'A') currentQuestion.answer_a = text;
+            else if (key === 'B') currentQuestion.answer_b = text;
+            else if (key === 'C') currentQuestion.answer_c = text;
+            else if (key === 'D') currentQuestion.answer_d = text;
+          } else if (line.length > 0) {
+            // Continuation of previous text
+            if (currentQuestion.answer_d) currentQuestion.answer_d += ' ' + line;
+            else if (currentQuestion.answer_c) currentQuestion.answer_c += ' ' + line;
+            else if (currentQuestion.answer_b) currentQuestion.answer_b += ' ' + line;
+            else if (currentQuestion.answer_a) currentQuestion.answer_a += ' ' + line;
+            else currentQuestion.question += ' ' + line;
+          }
         }
       }
+      
+      // Add last question
       if (currentQuestion && currentQuestion.answer_a && currentQuestion.answer_b && currentQuestion.answer_c && currentQuestion.answer_d) {
         questions.push(currentQuestion);
       }
+
+      console.log(`Parsed ${questions.length} questions from PDF`);
 
       if (!questions.length) throw new Error('Nie udało się znaleźć pytań w PDF.');
 
