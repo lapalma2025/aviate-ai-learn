@@ -18,9 +18,15 @@ interface Question {
   category: string;
 }
 
+type DisplayAnswer = {
+  text: string;
+  isCorrect: boolean;
+};
+
 const Learn = () => {
   const [question, setQuestion] = useState<Question | null>(null);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<DisplayAnswer[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
   const [explanation, setExplanation] = useState<string>("");
@@ -30,10 +36,11 @@ const Learn = () => {
 
   const loadRandomQuestion = async () => {
     setLoading(true);
-    setSelectedAnswer(null);
+    setSelectedIndex(null);
     setShowResult(false);
     setExplanation("");
     setUserQuestion("");
+    setAnswers([]);
 
     try {
       const { data, error } = await supabase
@@ -64,11 +71,37 @@ const Learn = () => {
     }
   };
 
-  const handleAnswer = async (answer: string) => {
-    setSelectedAnswer(answer);
+  // Shuffle helper
+  const shuffle = <T,>(arr: T[]): T[] => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  };
+
+  // Build and shuffle answers whenever question changes
+  useEffect(() => {
+    if (!question) {
+      setAnswers([]);
+      return;
+    }
+    const raw: DisplayAnswer[] = [
+      { text: question.answer_a, isCorrect: question.correct_answer === 'A' },
+      { text: question.answer_b, isCorrect: question.correct_answer === 'B' },
+      { text: question.answer_c, isCorrect: question.correct_answer === 'C' },
+      { text: question.answer_d, isCorrect: question.correct_answer === 'D' },
+    ];
+    setAnswers(shuffle(raw));
+  }, [question]);
+
+  const handleAnswer = async (index: number) => {
+    setSelectedIndex(index);
     setShowResult(true);
 
-    const isCorrect = answer === question?.correct_answer;
+    const picked = answers[index];
+    const isCorrect = !!picked?.isCorrect;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -83,7 +116,6 @@ const Learn = () => {
       console.error('Error saving progress:', error);
     }
 
-    // Auto-explain if correct answer
     if (isCorrect) {
       getAIExplanation();
     }
@@ -94,7 +126,7 @@ const Learn = () => {
 
     setAskingAI(true);
     try {
-      const correctAnswerText = question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string;
+      const correctAnswerText = (answers.find(a => a.isCorrect)?.text) || question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string;
       
       const { data, error } = await supabase.functions.invoke('ai-explain', {
         body: {
@@ -152,12 +184,7 @@ const Learn = () => {
     );
   }
 
-  const answers = [
-    { key: 'A', text: question.answer_a },
-    { key: 'B', text: question.answer_b },
-    { key: 'C', text: question.answer_c },
-    { key: 'D', text: question.answer_d },
-  ];
+  // answers are prepared in state with random order
 
   const isCorrect = selectedAnswer === question.correct_answer;
 
