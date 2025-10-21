@@ -134,6 +134,7 @@ export type Database = {
       user_progress: {
         Row: {
           answered_at: string
+          explanation: string | null
           id: string
           is_correct: boolean
           question_id: string
@@ -142,6 +143,7 @@ export type Database = {
         }
         Insert: {
           answered_at?: string
+          explanation?: string | null
           id?: string
           is_correct: boolean
           question_id: string
@@ -150,6 +152,7 @@ export type Database = {
         }
         Update: {
           answered_at?: string
+          explanation?: string | null
           id?: string
           is_correct?: boolean
           question_id?: string
@@ -203,16 +206,14 @@ export type Database = {
     Enums: {
       app_role: "admin" | "student"
       question_category:
+        | "air_law"
+        | "aircraft_general_knowledge"
+        | "flight_performance_planning"
         | "meteorology"
         | "navigation"
-        | "flight_planning"
-        | "aircraft_general"
-        | "flight_performance"
-        | "human_performance"
         | "operational_procedures"
         | "principles_of_flight"
         | "communications"
-        | "air_law"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -342,16 +343,14 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "student"],
       question_category: [
+        "air_law",
+        "aircraft_general_knowledge",
+        "flight_performance_planning",
         "meteorology",
         "navigation",
-        "flight_planning",
-        "aircraft_general",
-        "flight_performance",
-        "human_performance",
         "operational_procedures",
         "principles_of_flight",
         "communications",
-        "air_law",
       ],
     },
   },

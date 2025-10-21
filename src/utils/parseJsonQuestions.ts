@@ -14,8 +14,8 @@ export interface ParsedQuestion {
   question_code?: string;
 }
 
-// Map PL codes to categories
-const CATEGORY_MAP: Record<string, QuestionCategory> = {
+// Map PL codes to categories - using 'as any' until types are regenerated after migration
+const CATEGORY_MAP: Record<string, any> = {
   'PL010': 'air_law',
   'PL020': 'aircraft_general',
   'PL030': 'flight_performance',
@@ -28,7 +28,7 @@ const CATEGORY_MAP: Record<string, QuestionCategory> = {
   'PL100': 'operational_procedures',
 };
 
-function detectCategory(code: string): QuestionCategory {
+function detectCategory(code: string): any {
   const upperCode = code.toUpperCase();
   for (const [prefix, category] of Object.entries(CATEGORY_MAP)) {
     if (upperCode.includes(prefix)) {
@@ -116,7 +116,7 @@ export function parseJsonQuestions(jsonContent: string): ParsedQuestion[] {
         answer_c: answers[2],
         answer_d: answers[3],
         correct_answer: correctAnswer,
-        category: category,
+        category: category as QuestionCategory,
         question_code: item.numer
       });
     }

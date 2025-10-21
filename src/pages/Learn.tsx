@@ -125,6 +125,26 @@ const Learn = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user && question) {
+        // Check if we already have cached explanation for this question
+        const { data: cachedProgress } = await supabase
+          .from('user_progress')
+          .select('explanation')
+          .eq('user_id', user.id)
+          .eq('question_id', question.id)
+          .not('explanation', 'is', null)
+          .order('answered_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (cachedProgress?.explanation) {
+          // Use cached explanation
+          setExplanation(cachedProgress.explanation);
+        } else {
+          // Generate new explanation
+          await getAIExplanation();
+        }
+
+        // Save new progress entry
         await supabase.from('user_progress').insert({
           user_id: user.id,
           question_id: question.id,
@@ -133,10 +153,9 @@ const Learn = () => {
       }
     } catch (error) {
       console.error('Error saving progress:', error);
+      // If no cache found, generate explanation
+      await getAIExplanation();
     }
-
-    // Get AI explanation for both correct and incorrect answers
-    getAIExplanation();
   };
 
   const getAIExplanation = async (customQuestion?: string) => {
@@ -157,6 +176,29 @@ const Learn = () => {
       if (error) throw error;
 
       setExplanation(data.explanation);
+
+      // Save explanation to cache if this is the first time (not a custom question)
+      if (!customQuestion) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && question) {
+          // Update the most recent progress entry with the explanation
+          const { data: recentProgress } = await supabase
+            .from('user_progress')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('question_id', question.id)
+            .order('answered_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (recentProgress) {
+            await supabase
+              .from('user_progress')
+              .update({ explanation: data.explanation })
+              .eq('id', recentProgress.id);
+          }
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Błąd AI",
@@ -305,12 +347,21 @@ const Learn = () => {
               )}
             </CardTitle>
             {!isCorrect && (
-              <CardDescription>
-                Prawidłowa odpowiedź: {answers.find(a => a.isCorrect)?.text || question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string}
+              <CardDescription className="text-base mt-2">
+                Prawidłowa odpowiedź: <strong>{answers.find(a => a.isCorrect)?.text || question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string}</strong>
               </CardDescription>
             )}
           </CardHeader>
           <CardContent className="space-y-4">
+            {askingAI && !explanation && (
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                  <span className="font-medium text-sm">Przygotowywanie wyjaśnienia...</span>
+                </div>
+              </div>
+            )}
+            
             {explanation && (
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="flex items-center gap-2 mb-2">
