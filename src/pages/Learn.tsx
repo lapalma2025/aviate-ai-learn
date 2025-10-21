@@ -58,12 +58,12 @@ const Learn = () => {
     setAnswers([]);
 
     try {
-      let query = supabase.from('questions').select('*');
-      
+      let query = supabase.from("questions").select("*");
+
       if (selectedCategory !== "all") {
-        query = query.eq('category', selectedCategory as any);
+        query = query.eq("category", selectedCategory as any);
       }
-      
+
       const { data, error } = await query.limit(100);
 
       if (error) throw error;
@@ -74,9 +74,10 @@ const Learn = () => {
       } else {
         toast({
           title: "Brak pytań",
-          description: selectedCategory !== "all" 
-            ? "Brak pytań w wybranej kategorii. Administrator musi załadować pytania."
-            : "Administrator musi najpierw załadować pytania do bazy.",
+          description:
+            selectedCategory !== "all"
+              ? "Brak pytań w wybranej kategorii. Administrator musi załadować pytania."
+              : "Administrator musi najpierw załadować pytania do bazy.",
           variant: "destructive",
         });
       }
@@ -108,10 +109,10 @@ const Learn = () => {
       return;
     }
     const raw: DisplayAnswer[] = [
-      { text: question.answer_a, isCorrect: question.correct_answer === 'A' },
-      { text: question.answer_b, isCorrect: question.correct_answer === 'B' },
-      { text: question.answer_c, isCorrect: question.correct_answer === 'C' },
-      { text: question.answer_d, isCorrect: question.correct_answer === 'D' },
+      { text: question.answer_a, isCorrect: question.correct_answer === "A" },
+      { text: question.answer_b, isCorrect: question.correct_answer === "B" },
+      { text: question.answer_c, isCorrect: question.correct_answer === "C" },
+      { text: question.answer_d, isCorrect: question.correct_answer === "D" },
     ];
     setAnswers(shuffle(raw));
   }, [question]);
@@ -130,16 +131,18 @@ const Learn = () => {
 
     // Save progress
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user && question) {
-        await supabase.from('user_progress').insert({
+        await supabase.from("user_progress").insert({
           user_id: user.id,
           question_id: question.id,
           is_correct: isCorrect,
         });
       }
     } catch (error) {
-      console.error('Error saving progress:', error);
+      console.error("Error saving progress:", error);
     }
   };
 
@@ -148,9 +151,11 @@ const Learn = () => {
 
     setAskingAI(true);
     try {
-      const correctAnswerText = (answers.find(a => a.isCorrect)?.text) || question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string;
-      
-      const { data, error } = await supabase.functions.invoke('ai-explain', {
+      const correctAnswerText =
+        answers.find((a) => a.isCorrect)?.text ||
+        (question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string);
+
+      const { data, error } = await supabase.functions.invoke("ai-explain", {
         body: {
           question: question.question,
           answer: correctAnswerText,
@@ -197,9 +202,7 @@ const Learn = () => {
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Brak pytań</CardTitle>
-            <CardDescription>
-              Administrator musi najpierw załadować pytania do bazy danych.
-            </CardDescription>
+            <CardDescription>Administrator musi najpierw załadować pytania do bazy danych.</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -218,13 +221,11 @@ const Learn = () => {
               <BookOpen className="h-8 w-8 text-primary" />
               Tryb nauki
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Ucz się w swoim tempie z wyjaśnieniami AI
-            </p>
+            <p className="text-muted-foreground mt-1">Ucz się w swoim tempie z wyjaśnieniami AI</p>
           </div>
           {question.category && (
             <Badge variant="secondary" className="capitalize">
-              {CATEGORIES.find(c => c.value === question.category)?.label || question.category.replace(/_/g, ' ')}
+              {CATEGORIES.find((c) => c.value === question.category)?.label || question.category.replace(/_/g, " ")}
             </Badge>
           )}
         </div>
@@ -261,7 +262,7 @@ const Learn = () => {
           {answers.map((answer, index) => {
             const isSelected = selectedIndex === index;
             const isCorrectAnswer = answer.isCorrect;
-            
+
             let buttonClass = "w-full justify-start text-left h-auto py-4 px-4";
             if (showResult) {
               if (isCorrectAnswer) {
@@ -280,12 +281,8 @@ const Learn = () => {
                 disabled={showResult}
               >
                 <span className="flex-1">{answer.text}</span>
-                {showResult && isCorrectAnswer && (
-                  <CheckCircle className="h-5 w-5 text-success ml-2" />
-                )}
-                {showResult && isSelected && !isCorrect && (
-                  <XCircle className="h-5 w-5 text-destructive ml-2" />
-                )}
+                {showResult && isCorrectAnswer && <CheckCircle className="h-5 w-5 text-success ml-2" />}
+                {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-destructive ml-2" />}
               </Button>
             );
           })}
@@ -310,7 +307,11 @@ const Learn = () => {
             </CardTitle>
             {!isCorrect && (
               <CardDescription className="text-base mt-2">
-                Prawidłowa odpowiedź: <strong>{answers.find(a => a.isCorrect)?.text || question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string}</strong>
+                Prawidłowa odpowiedź:{" "}
+                <strong>
+                  {answers.find((a) => a.isCorrect)?.text ||
+                    (question[`answer_${question.correct_answer.toLowerCase()}` as keyof Question] as string)}
+                </strong>
               </CardDescription>
             )}
           </CardHeader>
@@ -323,13 +324,9 @@ const Learn = () => {
                 </div>
               </div>
             )}
-            
+
             {explanation && (
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-sm">Wyjaśnienie AI</span>
-                </div>
                 <p className="text-sm whitespace-pre-wrap">{explanation}</p>
               </div>
             )}
@@ -347,11 +344,7 @@ const Learn = () => {
                   className="flex-1"
                   rows={2}
                 />
-                <Button 
-                  onClick={handleAskAI} 
-                  disabled={!userQuestion.trim() || askingAI}
-                  size="sm"
-                >
+                <Button onClick={handleAskAI} disabled={!userQuestion.trim() || askingAI} size="sm">
                   {askingAI ? "..." : "Zapytaj"}
                 </Button>
               </div>
