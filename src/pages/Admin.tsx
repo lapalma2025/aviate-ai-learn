@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, CheckCircle, AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 const Admin = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -36,32 +36,83 @@ const Admin = () => {
     setProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      // Configure PDF.js worker
+      // @ts-ignore
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-      setProgress(30);
+      // Extract text from PDF in browser
+      setProgress(20);
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
+      const loadingTask = pdfjsLib.getDocument({ data: buffer });
+      const pdf = await loadingTask.promise;
 
-      const { data, error } = await supabase.functions.invoke('parse-pdf', {
-        body: formData,
-      });
+      let text = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const content = await page.getTextContent();
+        const pageText = (content.items as any[]).map((i: any) => i.str).join(' ');
+        text += pageText + '\n';
+      }
 
-      setProgress(100);
+      setProgress(50);
+
+      // Parse text into questions
+      const textLines = text.split('\n');
+      const questions: any[] = [];
+      let currentQuestion: any = null;
+
+      for (let i = 0; i < textLines.length; i++) {
+        const line = textLines[i].trim();
+        const questionMatch = line.match(/^(\d+)\.\s*(.+)/);
+        if (questionMatch && !line.startsWith('A.') && !line.startsWith('B.') && !line.startsWith('C.') && !line.startsWith('D.')) {
+          if (currentQuestion && currentQuestion.answer_a && currentQuestion.answer_b && currentQuestion.answer_c && currentQuestion.answer_d) {
+            questions.push(currentQuestion);
+          }
+          currentQuestion = {
+            question: questionMatch[2].trim(),
+            answer_a: '',
+            answer_b: '',
+            answer_c: '',
+            answer_d: '',
+            correct_answer: 'A',
+            category: 'operational_procedures'
+          };
+        } else if (currentQuestion) {
+          if (line.startsWith('A.')) currentQuestion.answer_a = line.substring(2).trim();
+          else if (line.startsWith('B.')) currentQuestion.answer_b = line.substring(2).trim();
+          else if (line.startsWith('C.')) currentQuestion.answer_c = line.substring(2).trim();
+          else if (line.startsWith('D.')) currentQuestion.answer_d = line.substring(2).trim();
+          else if (currentQuestion.answer_a && !currentQuestion.answer_b) currentQuestion.answer_a += ' ' + line;
+          else if (currentQuestion.answer_b && !currentQuestion.answer_c) currentQuestion.answer_b += ' ' + line;
+          else if (currentQuestion.answer_c && !currentQuestion.answer_d) currentQuestion.answer_c += ' ' + line;
+          else if (currentQuestion.answer_d) currentQuestion.answer_d += ' ' + line;
+          else if (!currentQuestion.answer_a) currentQuestion.question += ' ' + line;
+        }
+      }
+      if (currentQuestion && currentQuestion.answer_a && currentQuestion.answer_b && currentQuestion.answer_c && currentQuestion.answer_d) {
+        questions.push(currentQuestion);
+      }
+
+      if (!questions.length) throw new Error('Nie udało się znaleźć pytań w PDF.');
+
+      setProgress(70);
+
+      // Insert directly (RLS allows admin inserts)
+      const { data, error } = await supabase
+        .from('questions')
+        .insert(questions)
+        .select();
 
       if (error) throw error;
 
-      setResult({ success: true, count: data.count });
-      toast({
-        title: "Sukces!",
-        description: `Zaimportowano ${data.count} pytań do bazy danych.`,
-      });
+      setProgress(100);
+      setResult({ success: true, count: data?.length || 0 });
+      toast({ title: 'Sukces!', description: `Zaimportowano ${data?.length || 0} pytań do bazy.` });
     } catch (error: any) {
       console.error('Upload error:', error);
       setResult({ success: false, count: 0 });
-      toast({
-        title: "Błąd importu",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: 'Błąd importu', description: error.message, variant: 'destructive' });
     } finally {
       setUploading(false);
     }
@@ -83,8 +134,7 @@ const Admin = () => {
             Import pytań z PDF
           </CardTitle>
           <CardDescription>
-            PDF powinien zawierać pytania w formacie: numer, treść pytania, odpowiedzi A, B, C, D.
-            Odpowiedź A jest zawsze prawidłowa.
+            PDF powinien zawierać pytania w formacie: numer, treść pytania, odpowiedzi A, B, C, D. W PDF poprawna jest odpowiedź A; w aplikacji kolejność odpowiedzi jest mieszana.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
