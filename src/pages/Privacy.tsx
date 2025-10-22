@@ -170,9 +170,9 @@ const Privacy = () => {
               <p className="mb-3">
                 Platforma wykorzystuje pliki cookies w celach technicznych, analitycznych i marketingowych.
                 Szczegółowe informacje znajdują się w{' '}
-                <Link to="/cookies-policy" className="text-primary hover:underline">
+                <a href="/cookies-policy" className="text-primary hover:underline">
                   Polityce Cookies
-                </Link>
+                </a>
                 .
               </p>
             </section>

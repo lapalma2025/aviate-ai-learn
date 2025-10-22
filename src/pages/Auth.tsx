@@ -200,13 +200,13 @@ const Auth = () => {
                       />
                       <label htmlFor="terms" className="text-sm leading-tight cursor-pointer">
                         Akceptuję{' '}
-                        <Link to="/terms" className="text-primary hover:underline" target="_blank">
+                        <a href="/terms" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
                           regulamin
-                        </Link>
+                        </a>
                         {' '}i{' '}
-                        <Link to="/privacy" className="text-primary hover:underline" target="_blank">
+                        <a href="/privacy" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
                           politykę prywatności
-                        </Link>
+                        </a>
                         {' '}(wymagane)
                       </label>
                     </div>

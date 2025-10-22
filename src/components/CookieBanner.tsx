@@ -13,7 +13,6 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { Cookie } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export const CookieBanner = () => {
   const { showBanner, preferences, acceptAll, rejectAll, savePreferences } = useCookieConsent();
@@ -40,9 +39,9 @@ export const CookieBanner = () => {
                   <p className="text-sm text-muted-foreground">
                     Używamy plików cookies, aby zapewnić prawidłowe działanie platformy oraz analizować ruch na
                     stronie. Możesz zarządzać swoimi preferencjami w dowolnym momencie.{' '}
-                    <Link to="/cookies-policy" className="text-primary hover:underline">
+                    <a href="/cookies-policy" className="text-primary hover:underline">
                       Dowiedz się więcej
-                    </Link>
+                    </a>
                   </p>
                 </div>
               </div>
