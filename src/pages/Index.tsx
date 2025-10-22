@@ -55,7 +55,7 @@ const Index = () => {
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
             >
-              Najbardziej kompleksowa platforma do przygotowania do egzaminu PPLA. Tysiące pytań, AI wyjaśnienia i tryb
+              Kompleksowa platforma do przygotowania do egzaminu PPLA. Tysiące pytań, AI wyjaśnienia i tryb
               egzaminacyjny.
             </p>
 
