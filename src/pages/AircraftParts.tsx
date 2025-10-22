@@ -2,6 +2,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Maximize2 } from "lucide-react";
+import fuselageImg from "@/assets/parts/fuselage.png";
+import propellerImg from "@/assets/parts/propeller.png";
+import wingImg from "@/assets/parts/wing.png";
+import engineImg from "@/assets/parts/engine.png";
 
 interface AircraftPart {
   id: number;
@@ -9,6 +13,7 @@ interface AircraftPart {
   nameEn: string;
   description: string;
   category: "external" | "internal";
+  image?: string;
 }
 
 const aircraftParts: AircraftPart[] = [
@@ -19,6 +24,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuselage",
     description: "Główny korpus samolotu, łączy wszystkie sekcje i mieści kabinę pilotów, pasażerów oraz bagaż. Zapewnia strukturę nośną dla wszystkich pozostałych elementów.",
     category: "external",
+    image: fuselageImg,
   },
   {
     id: 2,
@@ -26,6 +32,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Engine",
     description: "Silnik tłokowy (najczęściej Lycoming lub Continental w Cessnach), generuje moc do napędu śmigła i wytworzenia ciągu.",
     category: "external",
+    image: engineImg,
   },
   {
     id: 3,
@@ -33,6 +40,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Propeller",
     description: "Przetwarza energię silnika w ciąg, zasysając powietrze i pchając samolot do przodu. Przekształca moc obrotową w siłę pociągową.",
     category: "external",
+    image: propellerImg,
   },
   {
     id: 4,
@@ -75,6 +83,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Wing",
     description: "Główna powierzchnia nośna, generuje siłę potrzebną do lotu. Profil skrzydła powoduje różnicę ciśnień nad i pod skrzydłem.",
     category: "external",
+    image: wingImg,
   },
   {
     id: 10,
@@ -621,6 +630,15 @@ export default function AircraftParts() {
                   <h3 className="text-xl font-bold text-primary">{selectedPart.name}</h3>
                   <p className="text-sm text-muted-foreground">{selectedPart.nameEn}</p>
                 </div>
+                {selectedPart.image && (
+                  <div className="relative aspect-square w-full max-w-sm mx-auto rounded-lg overflow-hidden border border-border bg-card">
+                    <img 
+                      src={selectedPart.image} 
+                      alt={`${selectedPart.name} - ${selectedPart.nameEn}`}
+                      className="w-full h-full object-contain p-4"
+                    />
+                  </div>
+                )}
                 <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                   <p className="text-sm leading-relaxed">{selectedPart.description}</p>
                 </div>
