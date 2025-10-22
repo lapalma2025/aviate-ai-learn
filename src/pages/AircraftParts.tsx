@@ -778,17 +778,8 @@ export default function AircraftParts() {
                   <h3 className="text-xl font-bold text-primary">{selectedPart.name}</h3>
                   <p className="text-sm text-muted-foreground">{selectedPart.nameEn}</p>
                 </div>
-                {selectedPart.image && (
-                  <div className="relative aspect-square w-full max-w-sm mx-auto rounded-lg overflow-hidden border border-border bg-card">
-                    <img 
-                      src={selectedPart.image} 
-                      alt={`${selectedPart.name} - ${selectedPart.nameEn}`}
-                      className="w-full h-full object-contain p-4"
-                    />
-                  </div>
-                )}
                 <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <p className="text-sm leading-relaxed">{selectedPart.description}</p>
+                  <p className="text-sm leading-relaxed break-words whitespace-normal">{selectedPart.description}</p>
                 </div>
               </div>
             ) : (
