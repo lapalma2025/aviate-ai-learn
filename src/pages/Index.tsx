@@ -228,7 +228,7 @@ const Index = () => {
                   "Tryb nauki i egzaminacyjny",
                   "Szczegółowe statystyki i analiza postępów",
                   "Interaktywne rozpoznawanie części samolotu",
-                  "Dożywotni dostęp do platformy",
+                  "Roczny dostęp do platformy",
                   "Wczesny dostęp do ATPL po premierze",
                 ].map((feature, index) => (
                   <li
