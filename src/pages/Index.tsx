@@ -135,7 +135,8 @@ const Index = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4">AI Wyjaśnienia</h3>
               <p className="text-muted-foreground">
-                Szczegółowe wyjaśnienia do każdej odpowiedzi generowane przez sztuczną inteligencję
+                Szczegółowe wyjaśnienia do każdej odpowiedzi z możliwością zadania pytania AI, jeśli coś pozostanie
+                niejasne.{" "}
               </p>
             </div>
 
