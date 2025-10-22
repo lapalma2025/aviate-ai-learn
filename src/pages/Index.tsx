@@ -108,7 +108,7 @@ const Index = () => {
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">Dlaczego PPLA Academy?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Najlepsza platforma do przygotowania do egzaminu PPLA w Polsce
+              Najlepsza platforma przygotowująca do egzaminu PPLA w Polsce
             </p>
           </div>
 
