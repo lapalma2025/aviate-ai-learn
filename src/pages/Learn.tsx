@@ -303,9 +303,9 @@ const Learn = () => {
                 onClick={() => !showResult && handleAnswer(index)}
                 disabled={showResult}
               >
-                <span className="flex-1">{answer.text}</span>
-                {showResult && isCorrectAnswer && <CheckCircle className="h-5 w-5 text-success ml-2" />}
-                {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-destructive ml-2" />}
+                <span className="flex-1 break-words whitespace-normal overflow-wrap-anywhere">{answer.text}</span>
+                {showResult && isCorrectAnswer && <CheckCircle className="h-5 w-5 text-success ml-2 flex-shrink-0" />}
+                {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-destructive ml-2 flex-shrink-0" />}
               </Button>
             );
           })}
