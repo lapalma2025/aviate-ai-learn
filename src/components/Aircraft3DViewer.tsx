@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import * as THREE from "three";
 
 interface Aircraft3DViewerProps {
@@ -43,50 +43,37 @@ const AircraftPartMesh = ({ partId, position, geometry, isSelected, onClick }: A
 };
 
 const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) => {
-  // Kadłub (Fuselage) - id: 8
-  const fuselageGeometry = new THREE.CylinderGeometry(0.3, 0.3, 4, 32);
-  fuselageGeometry.rotateZ(Math.PI / 2);
+  // Memoize geometries to prevent recreation on every render
+  const geometries = useMemo(() => {
+    // Kadłub (Fuselage) - id: 8
+    const fuselageGeometry = new THREE.CylinderGeometry(0.3, 0.3, 4, 32);
+    fuselageGeometry.rotateZ(Math.PI / 2);
 
-  // Skrzydła (Wings) - id: 5
-  const wingGeometry = new THREE.BoxGeometry(6, 0.1, 1);
+    // Kołpak śmigła (Spinner) - id: 2
+    const spinnerGeometry = new THREE.ConeGeometry(0.2, 0.4, 32);
+    spinnerGeometry.rotateZ(-Math.PI / 2);
 
-  // Statecznik poziomy (Horizontal Stabilizer) - id: 9
-  const hStabilizerGeometry = new THREE.BoxGeometry(2, 0.08, 0.6);
+    // Osłona silnika (Engine Cowling) - id: 3
+    const cowlingGeometry = new THREE.CylinderGeometry(0.35, 0.3, 0.8, 32);
+    cowlingGeometry.rotateZ(Math.PI / 2);
 
-  // Statecznik pionowy (Vertical Stabilizer) - id: 11
-  const vStabilizerGeometry = new THREE.BoxGeometry(0.08, 0.8, 0.6);
-
-  // Śmigło (Propeller) - id: 1
-  const propellerGeometry = new THREE.BoxGeometry(0.1, 2, 0.1);
-
-  // Kołpak śmigła (Spinner) - id: 2
-  const spinnerGeometry = new THREE.ConeGeometry(0.2, 0.4, 32);
-  spinnerGeometry.rotateZ(-Math.PI / 2);
-
-  // Osłona silnika (Engine Cowling) - id: 3
-  const cowlingGeometry = new THREE.CylinderGeometry(0.35, 0.3, 0.8, 32);
-  cowlingGeometry.rotateZ(Math.PI / 2);
-
-  // Lotki (Ailerons) - id: 6 (lewy)
-  const aileronGeometry = new THREE.BoxGeometry(1.2, 0.12, 0.3);
-
-  // Klapy (Flaps) - id: 7 (lewa)
-  const flapGeometry = new THREE.BoxGeometry(1, 0.12, 0.25);
-
-  // Ster wysokości (Elevator) - id: 10
-  const elevatorGeometry = new THREE.BoxGeometry(1.8, 0.1, 0.25);
-
-  // Ster kierunku (Rudder) - id: 12
-  const rudderGeometry = new THREE.BoxGeometry(0.1, 0.6, 0.25);
-
-  // Podwozie przednie (Nose Wheel) - id: 14
-  const noseWheelGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 16);
-
-  // Podwozie główne (Main Wheels) - id: 15 (lewe)
-  const mainWheelGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16);
-
-  // Wsporniki skrzydła (Wing Struts) - id: 16 (lewy)
-  const strutGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8);
+    return {
+      fuselage: fuselageGeometry,
+      wing: new THREE.BoxGeometry(6, 0.1, 1),
+      hStabilizer: new THREE.BoxGeometry(2, 0.08, 0.6),
+      vStabilizer: new THREE.BoxGeometry(0.08, 0.8, 0.6),
+      propeller: new THREE.BoxGeometry(0.1, 2, 0.1),
+      spinner: spinnerGeometry,
+      cowling: cowlingGeometry,
+      aileron: new THREE.BoxGeometry(1.2, 0.12, 0.3),
+      flap: new THREE.BoxGeometry(1, 0.12, 0.25),
+      elevator: new THREE.BoxGeometry(1.8, 0.1, 0.25),
+      rudder: new THREE.BoxGeometry(0.1, 0.6, 0.25),
+      noseWheel: new THREE.CylinderGeometry(0.15, 0.15, 0.1, 16),
+      mainWheel: new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16),
+      strut: new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8),
+    };
+  }, []);
 
   return (
     <group>
@@ -94,7 +81,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={8}
         position={[0, 0, 0]}
-        geometry={fuselageGeometry}
+        geometry={geometries.fuselage}
         isSelected={selectedPartId === 8}
         onClick={onPartClick}
       />
@@ -103,7 +90,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={3}
         position={[2.2, 0, 0]}
-        geometry={cowlingGeometry}
+        geometry={geometries.cowling}
         isSelected={selectedPartId === 3}
         onClick={onPartClick}
       />
@@ -112,7 +99,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={2}
         position={[2.8, 0, 0]}
-        geometry={spinnerGeometry}
+        geometry={geometries.spinner}
         isSelected={selectedPartId === 2}
         onClick={onPartClick}
       />
@@ -121,7 +108,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={1}
         position={[3, 0, 0]}
-        geometry={propellerGeometry}
+        geometry={geometries.propeller}
         isSelected={selectedPartId === 1}
         onClick={onPartClick}
       />
@@ -130,7 +117,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={5}
         position={[0, 0, 0]}
-        geometry={wingGeometry}
+        geometry={geometries.wing}
         isSelected={selectedPartId === 5}
         onClick={onPartClick}
       />
@@ -139,7 +126,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={6}
         position={[-2.5, 0, 0]}
-        geometry={aileronGeometry}
+        geometry={geometries.aileron}
         isSelected={selectedPartId === 6}
         onClick={onPartClick}
       />
@@ -148,7 +135,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={7}
         position={[-1, 0, 0.1]}
-        geometry={flapGeometry}
+        geometry={geometries.flap}
         isSelected={selectedPartId === 7}
         onClick={onPartClick}
       />
@@ -157,7 +144,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={16}
         position={[-1.5, -0.6, 0]}
-        geometry={strutGeometry}
+        geometry={geometries.strut}
         isSelected={selectedPartId === 16}
         onClick={onPartClick}
       />
@@ -166,7 +153,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={9}
         position={[-2, 0, 0]}
-        geometry={hStabilizerGeometry}
+        geometry={geometries.hStabilizer}
         isSelected={selectedPartId === 9}
         onClick={onPartClick}
       />
@@ -175,7 +162,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={10}
         position={[-2.5, 0, 0]}
-        geometry={elevatorGeometry}
+        geometry={geometries.elevator}
         isSelected={selectedPartId === 10}
         onClick={onPartClick}
       />
@@ -184,7 +171,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={11}
         position={[-2, 0.4, 0]}
-        geometry={vStabilizerGeometry}
+        geometry={geometries.vStabilizer}
         isSelected={selectedPartId === 11}
         onClick={onPartClick}
       />
@@ -193,7 +180,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={12}
         position={[-2.4, 0.4, 0]}
-        geometry={rudderGeometry}
+        geometry={geometries.rudder}
         isSelected={selectedPartId === 12}
         onClick={onPartClick}
       />
@@ -202,7 +189,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={14}
         position={[1.5, -0.8, 0]}
-        geometry={noseWheelGeometry}
+        geometry={geometries.noseWheel}
         isSelected={selectedPartId === 14}
         onClick={onPartClick}
       />
@@ -211,7 +198,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       <AircraftPartMesh
         partId={15}
         position={[-0.5, -0.8, -0.8]}
-        geometry={mainWheelGeometry}
+        geometry={geometries.mainWheel}
         isSelected={selectedPartId === 15}
         onClick={onPartClick}
       />
@@ -219,7 +206,7 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       {/* Podwozie główne prawe */}
       <mesh
         position={[-0.5, -0.8, 0.8]}
-        geometry={mainWheelGeometry}
+        geometry={geometries.mainWheel}
         onClick={(e) => {
           e.stopPropagation();
           onPartClick(15);

@@ -1,8 +1,8 @@
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Check } from "lucide-react";
-// Lazy-loaded below to avoid pre-evaluating three.js in non-3D routes
+import Aircraft3DViewer from "@/components/Aircraft3DViewer";
 
 interface AircraftPart {
   id: number;
@@ -155,7 +155,7 @@ const aircraftParts: AircraftPart[] = [
   },
 ];
 
-const Aircraft3DViewer = lazy(() => import("@/components/Aircraft3DViewer"));
+
 
 export default function AircraftParts() {
   const [selectedPart, setSelectedPart] = useState<AircraftPart | null>(null);
@@ -174,16 +174,14 @@ export default function AircraftParts() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardContent className="p-0">
-            <div className="h-[600px] rounded-lg overflow-hidden">
-              <Suspense fallback={<div className="h-full flex items-center justify-center text-muted-foreground">Ładowanie modelu 3D...</div>}>
-                <Aircraft3DViewer
-                  selectedPartId={selectedPart?.id || null}
-                  onPartClick={(partId) => {
-                    const part = aircraftParts.find((p) => p.id === partId);
-                    if (part) setSelectedPart(part);
-                  }}
-                />
-              </Suspense>
+            <div className="h-[600px] rounded-lg overflow-hidden bg-gradient-to-b from-sky-100 to-sky-50 dark:from-slate-900 dark:to-slate-800">
+              <Aircraft3DViewer
+                selectedPartId={selectedPart?.id || null}
+                onPartClick={(partId) => {
+                  const part = aircraftParts.find((p) => p.id === partId);
+                  if (part) setSelectedPart(part);
+                }}
+              />
             </div>
             <p className="text-xs text-muted-foreground mt-2 text-center px-6 pb-4">
               Użyj myszki aby obracać • Scroll aby przybliżać • Kliknij na część aby zobaczyć szczegóły
