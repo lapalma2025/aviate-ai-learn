@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Check } from "lucide-react";
-import Aircraft3DViewer from "@/components/Aircraft3DViewer";
+import { X } from "lucide-react";
+import cessnaImage from "@/assets/cessna-side-view.png";
 
 interface AircraftPart {
   id: number;
@@ -157,6 +158,7 @@ const aircraftParts: AircraftPart[] = [
 
 export default function AircraftParts() {
   const [selectedPart, setSelectedPart] = useState<AircraftPart | null>(null);
+  const [hoveredPart, setHoveredPart] = useState<number | null>(null);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -164,66 +166,87 @@ export default function AircraftParts() {
         <CardHeader>
           <CardTitle className="text-2xl">Budowa samolotu - Cessna 172</CardTitle>
           <p className="text-muted-foreground">
-            Obróć model 3D myszką i wybierz część z listy, aby poznać jej funkcję
+            Najedź myszką lub kliknij na część samolotu, aby poznać jej nazwę i funkcję
           </p>
         </CardHeader>
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
-          <CardContent className="p-0">
-            <div className="h-[600px] rounded-lg overflow-hidden">
-              <Aircraft3DViewer
-                selectedPartId={selectedPart?.id || null}
-                onPartClick={(partId) => {
-                  const part = aircraftParts.find((p) => p.id === partId);
-                  if (part) setSelectedPart(part);
-                }}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center px-6 pb-4">
-              Użyj myszki aby obracać • Scroll aby przybliżać • Kliknij na część aby zobaczyć szczegóły
-            </p>
+          <CardContent className="p-6">
+            <TooltipProvider delayDuration={0}>
+              <div className="relative w-full">
+                <img
+                  src={cessnaImage}
+                  alt="Cessna 172"
+                  className="w-full h-auto"
+                />
+                {aircraftParts.map((part) => (
+                  <Tooltip key={part.id}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={`absolute cursor-pointer transition-all duration-200 ${
+                          hoveredPart === part.id
+                            ? "bg-primary/30 ring-2 ring-primary shadow-lg shadow-primary/50"
+                            : "hover:bg-primary/20"
+                        } ${
+                          selectedPart?.id === part.id
+                            ? "bg-primary/40 ring-2 ring-primary"
+                            : ""
+                        }`}
+                        style={{
+                          left: `${part.position.x}%`,
+                          top: `${part.position.y}%`,
+                          width: `${part.position.width}%`,
+                          height: `${part.position.height}%`,
+                        }}
+                        onMouseEnter={() => setHoveredPart(part.id)}
+                        onMouseLeave={() => setHoveredPart(null)}
+                        onClick={() => setSelectedPart(part)}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      className="max-w-xs bg-popover border-primary/20 animate-fade-in"
+                    >
+                      <p className="font-semibold">{part.name}</p>
+                      <p className="text-xs text-muted-foreground">{part.nameEn}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </TooltipProvider>
           </CardContent>
         </Card>
 
-        <Card className="lg:sticky lg:top-6">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              {selectedPart ? (
-                <>
-                  <span>Szczegóły części</span>
-                  <button
-                    onClick={() => setSelectedPart(null)}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </>
-              ) : (
-                <span>Wybierz część</span>
+              Szczegóły części
+              {selectedPart && (
+                <button
+                  onClick={() => setSelectedPart(null)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {selectedPart ? (
               <div className="space-y-4 animate-fade-in">
-                <div className="p-4 bg-primary/10 rounded-lg border-2 border-primary shadow-sm">
-                  <div className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-xl font-bold text-primary">{selectedPart.name}</h3>
-                      <p className="text-sm text-muted-foreground">{selectedPart.nameEn}</p>
-                    </div>
-                  </div>
+                <div>
+                  <h3 className="text-xl font-bold text-primary">{selectedPart.name}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedPart.nameEn}</p>
                 </div>
-                <div className="p-4 bg-card rounded-lg border border-border">
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                   <p className="text-sm leading-relaxed">{selectedPart.description}</p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                <p>Wybierz część z listy poniżej,</p>
+                <p>Kliknij na część samolotu,</p>
                 <p>aby zobaczyć szczegółowy opis</p>
               </div>
             )}
@@ -234,33 +257,21 @@ export default function AircraftParts() {
       <Card>
         <CardHeader>
           <CardTitle>Lista wszystkich części</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Kliknij na część, aby zobaczyć szczegóły i podświetlić ją na modelu
-          </p>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <ScrollArea className="h-[300px] pr-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {aircraftParts.map((part) => (
                 <button
                   key={part.id}
                   onClick={() => setSelectedPart(part)}
-                  className={`p-3 rounded-lg border text-left transition-all hover:shadow-md group relative ${
+                  className={`p-3 rounded-lg border text-left transition-all hover:shadow-md ${
                     selectedPart?.id === part.id
-                      ? "bg-primary/10 border-primary shadow-md ring-2 ring-primary/50"
-                      : "bg-card border-border hover:bg-accent hover:border-primary/30"
+                      ? "bg-primary/10 border-primary shadow-sm"
+                      : "bg-card border-border hover:bg-accent"
                   }`}
                 >
-                  {selectedPart?.id === part.id && (
-                    <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-1">
-                      <Check className="h-3 w-3" />
-                    </div>
-                  )}
-                  <p className={`font-semibold text-sm ${
-                    selectedPart?.id === part.id ? "text-primary" : ""
-                  }`}>
-                    {part.name}
-                  </p>
+                  <p className="font-semibold text-sm">{part.name}</p>
                   <p className="text-xs text-muted-foreground">{part.nameEn}</p>
                 </button>
               ))}
