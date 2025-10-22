@@ -36,7 +36,7 @@ const Index = () => {
               }`}
             >
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Platforma do Przygotowania do Egzaminu PPLA</span>
+              <span className="text-sm font-medium">Platforma przygotowująca do Egzaminu PPLA</span>
             </div>
 
             <h1
