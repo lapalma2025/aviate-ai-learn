@@ -18,19 +18,16 @@ const Dashboard = () => {
 
   useEffect(() => {
     const loadStats = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Get total questions
-      const { count: totalQuestions } = await supabase
-        .from("questions")
-        .select("*", { count: "exact", head: true });
+      const { count: totalQuestions } = await supabase.from("questions").select("*", { count: "exact", head: true });
 
       // Get user progress
-      const { data: progress } = await supabase
-        .from("user_progress")
-        .select("*")
-        .eq("user_id", user.id);
+      const { data: progress } = await supabase.from("user_progress").select("*").eq("user_id", user.id);
 
       const answeredQuestions = progress?.length || 0;
       const correctAnswers = progress?.filter((p) => p.is_correct).length || 0;
@@ -56,23 +53,15 @@ const Dashboard = () => {
     loadStats();
   }, []);
 
-  const progressPercentage = stats.totalQuestions > 0 
-    ? (stats.answeredQuestions / stats.totalQuestions) * 100 
-    : 0;
+  const progressPercentage = stats.totalQuestions > 0 ? (stats.answeredQuestions / stats.totalQuestions) * 100 : 0;
 
-  const accuracyPercentage = stats.answeredQuestions > 0
-    ? (stats.correctAnswers / stats.answeredQuestions) * 100
-    : 0;
+  const accuracyPercentage = stats.answeredQuestions > 0 ? (stats.correctAnswers / stats.answeredQuestions) * 100 : 0;
 
   return (
     <div className="space-y-6">
       {/* Hero Section */}
       <div className="relative h-64 rounded-xl overflow-hidden shadow-elevation">
-        <img 
-          src={heroAviation} 
-          alt="Aviation" 
-          className="w-full h-full object-cover"
-        />
+        <img src={heroAviation} alt="Aviation" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/60 flex items-center">
           <div className="px-8 text-white">
             <h1 className="text-4xl font-bold mb-2">Witaj w PPLA Academy</h1>
@@ -104,9 +93,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{Math.round(accuracyPercentage)}%</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {stats.correctAnswers} poprawnych odpowiedzi
-            </p>
+            <p className="text-xs text-muted-foreground mt-2">{stats.correctAnswers} poprawnych odpowiedzi</p>
           </CardContent>
         </Card>
 
@@ -130,16 +117,17 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalQuestions}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Dostępnych w bazie
-            </p>
+            <p className="text-xs text-muted-foreground mt-2">Dostępnych w bazie</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Action Cards */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-primary/50 hover:shadow-glow transition-shadow cursor-pointer" onClick={() => navigate("/learn")}>
+        <Card
+          className="border-primary/50 hover:shadow-glow transition-shadow cursor-pointer"
+          onClick={() => navigate("/learn")}
+        >
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 bg-primary/10 rounded-lg">
@@ -147,7 +135,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <CardTitle>Tryb nauki</CardTitle>
-                <CardDescription>Ucz się w swoim tempie z wyjaśnieniami AI</CardDescription>
+                <CardDescription>Ucz się w swoim tempie z wyjaśnieniami</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -156,7 +144,10 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-accent/50 hover:shadow-glow transition-shadow cursor-pointer" onClick={() => navigate("/exam")}>
+        <Card
+          className="border-accent/50 hover:shadow-glow transition-shadow cursor-pointer"
+          onClick={() => navigate("/exam")}
+        >
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 bg-accent/10 rounded-lg">
@@ -169,7 +160,9 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <Button variant="secondary" className="w-full">Zacznij egzamin</Button>
+            <Button variant="secondary" className="w-full">
+              Zacznij egzamin
+            </Button>
           </CardContent>
         </Card>
       </div>
