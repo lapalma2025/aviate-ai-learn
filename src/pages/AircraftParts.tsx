@@ -1,159 +1,551 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X, Maximize2 } from "lucide-react";
-import cessnaImage from "@/assets/cessna-side-view.png";
 
 interface AircraftPart {
   id: number;
   name: string;
   nameEn: string;
   description: string;
-  position: { x: number; y: number; width: number; height: number };
+  category: "external" | "internal";
 }
 
 const aircraftParts: AircraftPart[] = [
+  // CZĘŚCI ZEWNĘTRZNE
   {
     id: 1,
-    name: "Śmigło",
-    nameEn: "Propeller",
-    description: "Zapewnia ciąg napędowy, zasysa powietrze i pcha samolot do przodu. Jest napędzane przez silnik i przekształca moc obrotową w siłę pociągową.",
-    position: { x: 85, y: 42, width: 6, height: 8 },
+    name: "Kadłub",
+    nameEn: "Fuselage",
+    description: "Główny korpus samolotu, łączy wszystkie sekcje i mieści kabinę pilotów, pasażerów oraz bagaż. Zapewnia strukturę nośną dla wszystkich pozostałych elementów.",
+    category: "external",
   },
   {
     id: 2,
-    name: "Kołpak śmigła",
-    nameEn: "Spinner",
-    description: "Aerodynamiczna osłona centralnej części śmigła. Zmniejsza opór powietrza i chroni mechanizm mocowania śmigła.",
-    position: { x: 91, y: 44, width: 3, height: 4 },
+    name: "Silnik",
+    nameEn: "Engine",
+    description: "Silnik tłokowy (najczęściej Lycoming lub Continental w Cessnach), generuje moc do napędu śmigła i wytworzenia ciągu.",
+    category: "external",
   },
   {
     id: 3,
-    name: "Osłona silnika",
-    nameEn: "Engine Cowling",
-    description: "Chroni silnik i kieruje przepływ powietrza chłodzącego. Zapewnia odpowiednią temperaturę pracy silnika podczas lotu.",
-    position: { x: 88, y: 45, width: 6, height: 6 },
+    name: "Śmigło",
+    nameEn: "Propeller",
+    description: "Przetwarza energię silnika w ciąg, zasysając powietrze i pchając samolot do przodu. Przekształca moc obrotową w siłę pociągową.",
+    category: "external",
   },
   {
     id: 4,
-    name: "Przednia szyba",
-    nameEn: "Windshield",
-    description: "Chroni pilotów przed wiatrem i owadami. Wykonana z wytrzymałego, przezroczystego materiału odpornego na wysokie prędkości.",
-    position: { x: 70, y: 40, width: 8, height: 6 },
+    name: "Kołpak śmigła",
+    nameEn: "Spinner",
+    description: "Aerodynamiczna osłona centralnej części śmigła, poprawia aerodynamikę i zmniejsza opór powietrza.",
+    category: "external",
   },
   {
     id: 5,
-    name: "Skrzydło",
-    nameEn: "Wing",
-    description: "Generuje siłę nośną potrzebną do lotu. Profil skrzydła powoduje różnicę ciśnień powietrza nad i pod skrzydłem, co tworzy unoszenie.",
-    position: { x: 45, y: 28, width: 35, height: 15 },
+    name: "Osłona silnika",
+    nameEn: "Cowling",
+    description: "Kieruje przepływ powietrza chłodzącego i chroni silnik, zapewniając odpowiednią temperaturę pracy podczas lotu.",
+    category: "external",
   },
   {
     id: 6,
-    name: "Lotka",
-    nameEn: "Aileron",
-    description: "Kontroluje przechylenie samolotu (roll). Znajduje się na tylnej krawędzi skrzydła i porusza się przeciwnie na obu skrzydłach.",
-    position: { x: 30, y: 32, width: 12, height: 4 },
+    name: "Wlot powietrza",
+    nameEn: "Air Intake",
+    description: "Dostarcza powietrze do silnika, niezbędne do procesu spalania paliwa.",
+    category: "external",
   },
   {
     id: 7,
-    name: "Klapa",
-    nameEn: "Flap",
-    description: "Zwiększa siłę nośną przy starcie i lądowaniu. Wysuwana z tylnej krawędzi skrzydła, zwiększa krzywizną profilu skrzydła.",
-    position: { x: 58, y: 38, width: 10, height: 4 },
+    name: "Układ wylotowy",
+    nameEn: "Exhaust",
+    description: "Odprowadza spaliny z silnika, minimalizując hałas i zapewniając bezpieczeństwo.",
+    category: "external",
   },
   {
     id: 8,
-    name: "Kadłub",
-    nameEn: "Fuselage",
-    description: "Główna część samolotu, mieści kabinę i bagażnik. Zapewnia strukturę nośną i połączenie wszystkich pozostałych elementów.",
-    position: { x: 50, y: 42, width: 28, height: 10 },
+    name: "Chłodnica oleju",
+    nameEn: "Oil Cooler",
+    description: "Obniża temperaturę oleju silnikowego, zapobiegając przegrzaniu układu smarowania.",
+    category: "external",
   },
   {
     id: 9,
-    name: "Statecznik poziomy",
-    nameEn: "Horizontal Stabilizer",
-    description: "Stabilizuje samolot w osi podłużnej. Zapobiega niekontrolowanym ruchom góra-dół podczas lotu.",
-    position: { x: 18, y: 43, width: 12, height: 3 },
+    name: "Skrzydło",
+    nameEn: "Wing",
+    description: "Główna powierzchnia nośna, generuje siłę potrzebną do lotu. Profil skrzydła powoduje różnicę ciśnień nad i pod skrzydłem.",
+    category: "external",
   },
   {
     id: 10,
-    name: "Ster wysokości",
-    nameEn: "Elevator",
-    description: "Kontroluje wznoszenie i opadanie (pitch). Znajduje się na tylnej krawędzi statecznika poziomego.",
-    position: { x: 15, y: 43, width: 8, height: 3 },
+    name: "Lotka",
+    nameEn: "Aileron",
+    description: "Kontroluje przechylenie samolotu (roll). Znajduje się na tylnej krawędzi skrzydła i porusza się przeciwnie na obu skrzydłach.",
+    category: "external",
   },
   {
     id: 11,
-    name: "Statecznik pionowy",
-    nameEn: "Vertical Stabilizer",
-    description: "Stabilizuje samolot kierunkowo. Zapobiega niepożądanym odchyleniom od kursu podczas lotu.",
-    position: { x: 20, y: 32, width: 8, height: 12 },
+    name: "Klapa",
+    nameEn: "Flap",
+    description: "Zwiększa siłę nośną przy starcie i lądowaniu. Wysuwana z tylnej krawędzi skrzydła, zwiększa krzywiznę profilu.",
+    category: "external",
   },
   {
     id: 12,
-    name: "Ster kierunku",
-    nameEn: "Rudder",
-    description: "Kontroluje skręt w lewo/prawo (yaw). Znajduje się na tylnej krawędzi statecznika pionowego.",
-    position: { x: 16, y: 35, width: 5, height: 9 },
+    name: "Wspornik skrzydła",
+    nameEn: "Wing Strut",
+    description: "Wzmacnia strukturę skrzydła w samolotach z wysokim płatem (jak Cessna 172). Przenosi obciążenia ze skrzydła na kadłub.",
+    category: "external",
   },
   {
     id: 13,
-    name: "Podwozie",
-    nameEn: "Landing Gear",
-    description: "Umożliwia start, lądowanie i kołowanie. Absorbuje uderzenia podczas lądowania i pozwala na poruszanie się po ziemi.",
-    position: { x: 52, y: 60, width: 18, height: 10 },
+    name: "Końcówka skrzydła",
+    nameEn: "Wingtip",
+    description: "Zakończenie skrzydła, często wyposażone w lampy pozycyjne. Może mieć modyfikacje aerodynamiczne.",
+    category: "external",
   },
   {
     id: 14,
-    name: "Przednie koło",
-    nameEn: "Nose Wheel",
-    description: "Główne koło sterujące na ziemi. Umożliwia skręcanie podczas kołowania i jest połączone z pedalami steru kierunku.",
-    position: { x: 82, y: 62, width: 6, height: 8 },
+    name: "Światła pozycyjne",
+    nameEn: "Navigation Lights",
+    description: "Ułatwiają widoczność w nocy - zielone na prawym skrzydle, czerwone na lewym, białe z tyłu. Informują o orientacji samolotu.",
+    category: "external",
   },
   {
     id: 15,
-    name: "Koła główne",
-    nameEn: "Main Wheels",
-    description: "Podpierają samolot przy lądowaniu. Przyjmują większość ciężaru samolotu podczas operacji naziemnych.",
-    position: { x: 58, y: 62, width: 8, height: 8 },
+    name: "Światła błyskowe",
+    nameEn: "Strobe Lights",
+    description: "Migające światła zwiększające widoczność samolotu dla innych statków powietrznych.",
+    category: "external",
   },
   {
     id: 16,
-    name: "Wspornik skrzydła",
-    nameEn: "Wing Strut",
-    description: "Wzmacnia strukturę skrzydła. Przenosi obciążenia ze skrzydła na kadłub i zwiększa sztywność konstrukcji.",
-    position: { x: 60, y: 48, width: 4, height: 12 },
+    name: "Wlew paliwa",
+    nameEn: "Fuel Tank Cap",
+    description: "Punkt tankowania paliwa, zazwyczaj umieszczony na górnej powierzchni skrzydła.",
+    category: "external",
   },
   {
     id: 17,
     name: "Rurka Pitota",
     nameEn: "Pitot Tube",
-    description: "Mierzy prędkość powietrza. Umieszczona w niezmąconym strumieniu powietrza, dostarcza danych do wskaźnika prędkości.",
-    position: { x: 48, y: 38, width: 3, height: 2 },
+    description: "Mierzy prędkość powietrza, umieszczona w niezmąconym strumieniu. Dostarcza dane do wskaźnika prędkości.",
+    category: "external",
   },
   {
     id: 18,
-    name: "Światła pozycyjne",
-    nameEn: "Navigation Lights",
-    description: "Ułatwiają widoczność w nocy. Czerwone na lewym skrzydle, zielone na prawym, białe z tyłu - informują o orientacji samolotu.",
-    position: { x: 28, y: 32, width: 3, height: 2 },
+    name: "Port statyczny",
+    nameEn: "Static Port",
+    description: "Mierzy ciśnienie atmosferyczne, dostarcza danych dla wysokościomierza, wariometru i prędkościomierza.",
+    category: "external",
   },
   {
     id: 19,
-    name: "Port statyczny",
-    nameEn: "Static Port",
-    description: "Mierzy ciśnienie powietrza do przyrządów pokładowych. Dostarcza danych dla wysokościomierza i wariometru.",
-    position: { x: 68, y: 50, width: 2, height: 2 },
+    name: "Statecznik pionowy",
+    nameEn: "Vertical Stabilizer",
+    description: "Stabilizuje samolot kierunkowo, zapobiega niepożądanym odchyleniom od kursu podczas lotu.",
+    category: "external",
   },
   {
     id: 20,
+    name: "Ster kierunku",
+    nameEn: "Rudder",
+    description: "Kontroluje skręt w lewo/prawo (yaw). Znajduje się na tylnej krawędzi statecznika pionowego.",
+    category: "external",
+  },
+  {
+    id: 21,
+    name: "Statecznik poziomy",
+    nameEn: "Horizontal Stabilizer",
+    description: "Stabilizuje samolot w osi podłużnej, zapobiega niekontrolowanym ruchom góra-dół podczas lotu.",
+    category: "external",
+  },
+  {
+    id: 22,
+    name: "Ster wysokości",
+    nameEn: "Elevator",
+    description: "Kontroluje wznoszenie i opadanie (pitch). Znajduje się na tylnej krawędzi statecznika poziomego.",
+    category: "external",
+  },
+  {
+    id: 23,
+    name: "Trymer",
+    nameEn: "Trim Tab",
+    description: "Zmniejsza siłę potrzebną na sterze, pozwala na zbalansowanie samolotu w locie bez ciągłego nacisku na drążek.",
+    category: "external",
+  },
+  {
+    id: 24,
+    name: "Przednie koło",
+    nameEn: "Nose Wheel",
+    description: "Główne koło sterujące na ziemi, umożliwia skręcanie podczas kołowania. Połączone z pedalami steru kierunku.",
+    category: "external",
+  },
+  {
+    id: 25,
+    name: "Koła główne",
+    nameEn: "Main Wheels",
+    description: "Podpierają samolot przy lądowaniu i przyjmują większość ciężaru podczas operacji naziemnych.",
+    category: "external",
+  },
+  {
+    id: 26,
+    name: "Amortyzator podwozia",
+    nameEn: "Landing Gear Strut",
+    description: "Absorbuje uderzenia podczas lądowania, zapewnia płynne kołowanie po nierównej powierzchni.",
+    category: "external",
+  },
+  {
+    id: 27,
+    name: "Osłona kół",
+    nameEn: "Wheel Fairing",
+    description: "Aerodynamiczna osłona podwozia (opcjonalna), zmniejsza opór powietrza.",
+    category: "external",
+  },
+  {
+    id: 28,
+    name: "Układ hamulcowy",
+    nameEn: "Brake System",
+    description: "Zazwyczaj hydrauliczny układ hamulców na kołach głównych, kontrolowany przez pedały.",
+    category: "external",
+  },
+  {
+    id: 29,
+    name: "Przednia szyba",
+    nameEn: "Windshield",
+    description: "Chroni pilotów przed wiatrem, wykonana z wytrzymałego, przezroczystego materiału odpornego na wysokie prędkości.",
+    category: "external",
+  },
+  {
+    id: 30,
+    name: "Drzwi",
+    nameEn: "Door",
+    description: "Wejście do kabiny, zazwyczaj po obu stronach kadłuba.",
+    category: "external",
+  },
+  {
+    id: 31,
+    name: "Stopień i uchwyt",
+    nameEn: "Step & Handle",
+    description: "Ułatwiają wejście do kabiny samolotu.",
+    category: "external",
+  },
+  {
+    id: 32,
     name: "Antena",
     nameEn: "Antenna",
-    description: "Umożliwia komunikację radiową i nawigację GPS. Niezbędna do łączności z kontrolą ruchu lotniczego i odbioru sygnałów nawigacyjnych.",
-    position: { x: 55, y: 38, width: 3, height: 2 },
+    description: "Anteny radiowe i GPS umożliwiają komunikację z kontrolą ruchu oraz nawigację.",
+    category: "external",
+  },
+  {
+    id: 33,
+    name: "Antena ELT",
+    nameEn: "ELT Antenna",
+    description: "Antena lokalizatora awaryjnego, automatycznie wysyła sygnał ratunkowy po wypadku.",
+    category: "external",
+  },
+  {
+    id: 34,
+    name: "Odgromnik",
+    nameEn: "Static Wick",
+    description: "Odprowadza ładunki elektrostatyczne z końcówek skrzydeł i usterzenia.",
+    category: "external",
+  },
+  
+  // CZĘŚCI WEWNĘTRZNE
+  {
+    id: 35,
+    name: "Drążek sterowy",
+    nameEn: "Control Yoke",
+    description: "Główny element sterowania samolotem - ruch do przodu/tyłu kontroluje pitch (wznoszenie/opadanie), obrót kontroluje roll (przechylenie).",
+    category: "internal",
+  },
+  {
+    id: 36,
+    name: "Pedały steru kierunku",
+    nameEn: "Rudder Pedals",
+    description: "Kontrolują ster kierunku (yaw) oraz hamulce kół głównych podczas kołowania.",
+    category: "internal",
+  },
+  {
+    id: 37,
+    name: "Manetka przepustnicy",
+    nameEn: "Throttle",
+    description: "Reguluje moc silnika poprzez kontrolę ilości paliwa i powietrza dostarczanych do cylindrów.",
+    category: "internal",
+  },
+  {
+    id: 38,
+    name: "Kontrola mieszanki",
+    nameEn: "Mixture Control",
+    description: "Reguluje stosunek paliwa do powietrza, wymaga dostosowania na różnych wysokościach.",
+    category: "internal",
+  },
+  {
+    id: 39,
+    name: "Podgrzewanie gaźnika",
+    nameEn: "Carburetor Heat",
+    description: "Doprowadza ciepłe powietrze do gaźnika, zapobiega oblodzeniu w wilgotnych warunkach.",
+    category: "internal",
+  },
+  {
+    id: 40,
+    name: "Dźwignia klap",
+    nameEn: "Flap Lever",
+    description: "Kontroluje wysunięcie klap zwiększających siłę nośną przy starcie i lądowaniu.",
+    category: "internal",
+  },
+  {
+    id: 41,
+    name: "Pokrętło trymera",
+    nameEn: "Trim Wheel",
+    description: "Dostosowuje trymer steru wysokości, redukując potrzebę ciągłego nacisku na drążek.",
+    category: "internal",
+  },
+  {
+    id: 42,
+    name: "Hamulec postojowy",
+    nameEn: "Parking Brake",
+    description: "Blokuje koła podczas postoju samolotu na ziemi.",
+    category: "internal",
+  },
+  {
+    id: 43,
+    name: "Wybór zbiornika paliwa",
+    nameEn: "Fuel Selector",
+    description: "Wybiera źródło paliwa: lewy zbiornik (LEFT), prawy (RIGHT) lub oba (BOTH).",
+    category: "internal",
+  },
+  {
+    id: 44,
+    name: "Pompka rozruchowa",
+    nameEn: "Primer",
+    description: "Ręczna pompka wtryskująca paliwo bezpośrednio do cylindrów przed uruchomieniem silnika.",
+    category: "internal",
+  },
+  {
+    id: 45,
+    name: "Prędkościomierz",
+    nameEn: "Airspeed Indicator",
+    description: "Pokazuje prędkość samolotu względem otaczającego powietrza w węzłach lub mph.",
+    category: "internal",
+  },
+  {
+    id: 46,
+    name: "Sztuczny horyzont",
+    nameEn: "Attitude Indicator",
+    description: "Wyświetla położenie samolotu względem horyzontu - kluczowy przyrząd w locie w chmurach.",
+    category: "internal",
+  },
+  {
+    id: 47,
+    name: "Wysokościomierz",
+    nameEn: "Altimeter",
+    description: "Mierzy wysokość samolotu nad poziomem morza na podstawie ciśnienia atmosferycznego.",
+    category: "internal",
+  },
+  {
+    id: 48,
+    name: "Koordynator skrętu",
+    nameEn: "Turn Coordinator",
+    description: "Pokazuje tempo skrętu i koordynację (czy skręt jest prawidłowo wykonany bez poślizgu).",
+    category: "internal",
+  },
+  {
+    id: 49,
+    name: "Wskaźnik kierunku",
+    nameEn: "Heading Indicator",
+    description: "Żyroskopowy wskaźnik kursu, dokładniejszy niż kompas magnetyczny podczas manewrów.",
+    category: "internal",
+  },
+  {
+    id: 50,
+    name: "Wariometr",
+    nameEn: "Vertical Speed Indicator",
+    description: "Pokazuje prędkość wznoszenia lub opadania samolotu w stopach na minutę.",
+    category: "internal",
+  },
+  {
+    id: 51,
+    name: "Kompas magnetyczny",
+    nameEn: "Magnetic Compass",
+    description: "Podstawowy instrument nawigacyjny wskazujący kierunek magnetyczny północy.",
+    category: "internal",
+  },
+  {
+    id: 52,
+    name: "Obrotomierz",
+    nameEn: "Tachometer",
+    description: "Pokazuje obroty silnika w RPM (obrotach na minutę).",
+    category: "internal",
+  },
+  {
+    id: 53,
+    name: "Wskaźnik ciśnienia oleju",
+    nameEn: "Oil Pressure Gauge",
+    description: "Monitoruje ciśnienie oleju w układzie smarowania silnika.",
+    category: "internal",
+  },
+  {
+    id: 54,
+    name: "Wskaźnik temperatury oleju",
+    nameEn: "Oil Temperature Gauge",
+    description: "Pokazuje temperaturę oleju silnikowego.",
+    category: "internal",
+  },
+  {
+    id: 55,
+    name: "Wskaźniki poziomu paliwa",
+    nameEn: "Fuel Quantity Gauges",
+    description: "Pokazują ilość paliwa w każdym zbiorniku.",
+    category: "internal",
+  },
+  {
+    id: 56,
+    name: "Amperomierz",
+    nameEn: "Ammeter",
+    description: "Pokazuje obciążenie układu elektrycznego i stan ładowania akumulatora.",
+    category: "internal",
+  },
+  {
+    id: 57,
+    name: "Woltomierz",
+    nameEn: "Voltmeter",
+    description: "Mierzy napięcie w układzie elektrycznym samolotu.",
+    category: "internal",
+  },
+  {
+    id: 58,
+    name: "Zegar",
+    nameEn: "Clock",
+    description: "Standardowy przyrząd do pomiaru czasu lotu i nawigacji.",
+    category: "internal",
+  },
+  {
+    id: 59,
+    name: "Akumulator",
+    nameEn: "Battery",
+    description: "Magazynuje energię elektryczną do uruchomienia silnika i zasilania systemów przy wyłączonym silniku.",
+    category: "internal",
+  },
+  {
+    id: 60,
+    name: "Prądnica",
+    nameEn: "Alternator",
+    description: "Generuje prąd elektryczny podczas pracy silnika, ładuje akumulator i zasila systemy.",
+    category: "internal",
+  },
+  {
+    id: 61,
+    name: "Bezpieczniki",
+    nameEn: "Circuit Breakers",
+    description: "Chronią układy elektryczne przed przeciążeniem i zwarciem.",
+    category: "internal",
+  },
+  {
+    id: 62,
+    name: "Wyłącznik główny",
+    nameEn: "Master Switch",
+    description: "Główny wyłącznik zasilania elektrycznego samolotu.",
+    category: "internal",
+  },
+  {
+    id: 63,
+    name: "Zasilanie awioniki",
+    nameEn: "Avionics Master",
+    description: "Oddzielny wyłącznik dla systemów radiowych i nawigacyjnych.",
+    category: "internal",
+  },
+  {
+    id: 64,
+    name: "Zbiorniki paliwa",
+    nameEn: "Fuel Tanks",
+    description: "Zazwyczaj umieszczone w skrzydłach, przechowują paliwo lotnicze (Avgas 100LL).",
+    category: "internal",
+  },
+  {
+    id: 65,
+    name: "Przewody paliwowe",
+    nameEn: "Fuel Lines",
+    description: "Transportują paliwo ze zbiorników do silnika.",
+    category: "internal",
+  },
+  {
+    id: 66,
+    name: "Filtr paliwa",
+    nameEn: "Fuel Strainer",
+    description: "Oddziela wodę i zanieczyszczenia z paliwa przed dostarczeniem do silnika.",
+    category: "internal",
+  },
+  {
+    id: 67,
+    name: "Pompa paliwa",
+    nameEn: "Fuel Pump",
+    description: "Elektryczna pompa zapasowa wspomaga mechaniczną pompę silnika.",
+    category: "internal",
+  },
+  {
+    id: 68,
+    name: "Odpowietrzenie zbiornika",
+    nameEn: "Fuel Vent",
+    description: "Wyrównuje ciśnienie w zbiorniku paliwa podczas zużycia paliwa.",
+    category: "internal",
+  },
+  {
+    id: 69,
+    name: "Układ smarowania",
+    nameEn: "Lubrication System",
+    description: "Pompa oleju, filtr, zbiornik i chłodnica zapewniają ciągłe smarowanie części ruchomych silnika.",
+    category: "internal",
+  },
+  {
+    id: 70,
+    name: "Układ chłodzenia",
+    nameEn: "Cooling System",
+    description: "W Cessnach powietrzny - kanały w osłonie kierują przepływ powietrza wokół cylindrów silnika.",
+    category: "internal",
+  },
+  {
+    id: 71,
+    name: "Magnetos",
+    nameEn: "Magnetos",
+    description: "Dwa niezależne systemy zapłonowe zapewniające redundancję i bezpieczeństwo.",
+    category: "internal",
+  },
+  {
+    id: 72,
+    name: "Świece zapłonowe",
+    nameEn: "Spark Plugs",
+    description: "Zapalają mieszankę paliwowo-powietrzną w cylindrach silnika.",
+    category: "internal",
+  },
+  {
+    id: 73,
+    name: "Stacyjka",
+    nameEn: "Ignition Switch",
+    description: "Pozycje: OFF (wyłączone), L (lewy magnetos), R (prawy magnetos), BOTH (oba), START (rozruch).",
+    category: "internal",
+  },
+  {
+    id: 74,
+    name: "Pasy bezpieczeństwa",
+    nameEn: "Seatbelts",
+    description: "Zabezpieczają pilotów i pasażerów podczas lotu i lądowania.",
+    category: "internal",
+  },
+  {
+    id: 75,
+    name: "Gaśnica",
+    nameEn: "Fire Extinguisher",
+    description: "Przenośna gaśnica do gaszenia pożarów w kabinie.",
+    category: "internal",
+  },
+  {
+    id: 76,
+    name: "Lokalizator awaryjny",
+    nameEn: "ELT",
+    description: "Emergency Locator Transmitter - automatycznie wysyła sygnał ratunkowy po wypadku.",
+    category: "internal",
   },
 ];
 
@@ -176,89 +568,35 @@ export default function AircraftParts() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardContent className="p-6">
-            <Tabs defaultValue="3d" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="3d">Model 3D (interaktywny)</TabsTrigger>
-                <TabsTrigger value="diagram">Diagram 2D</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="3d" className="mt-0">
-                <div className="relative">
-                  <button
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </button>
-                  <div className={`rounded-lg overflow-hidden border border-border shadow-lg ${
-                    isFullscreen ? "fixed inset-4 z-50" : "aspect-video"
-                  }`}>
-                    <iframe
-                      src="https://sketchfab.com/models/3bad38124b784eafa9f16740fbb9f23e/embed?autospin=0.2&autostart=1&ui_theme=dark"
-                      className="w-full h-full"
-                      allow="autoplay; fullscreen; xr-spatial-tracking"
-                      allowFullScreen
-                    />
-                  </div>
-                  {isFullscreen && (
-                    <button
-                      onClick={() => setIsFullscreen(false)}
-                      className="fixed top-6 right-6 z-50 p-3 bg-background hover:bg-accent rounded-lg shadow-lg transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Użyj myszki aby obracać • Scroll aby przybliżać • Prawy przycisk aby przesuwać
-                  </p>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="diagram" className="mt-0">
-                <TooltipProvider delayDuration={0}>
-                  <div className="relative w-full">
-                    <img
-                      src={cessnaImage}
-                      alt="Cessna 172"
-                      className="w-full h-auto rounded-lg"
-                    />
-                    {aircraftParts.map((part) => (
-                      <Tooltip key={part.id}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={`absolute cursor-pointer transition-all duration-200 rounded ${
-                              hoveredPart === part.id
-                                ? "bg-primary/30 ring-2 ring-primary shadow-lg shadow-primary/50"
-                                : "hover:bg-primary/20"
-                            } ${
-                              selectedPart?.id === part.id
-                                ? "bg-primary/40 ring-2 ring-primary"
-                                : ""
-                            }`}
-                            style={{
-                              left: `${part.position.x}%`,
-                              top: `${part.position.y}%`,
-                              width: `${part.position.width}%`,
-                              height: `${part.position.height}%`,
-                            }}
-                            onMouseEnter={() => setHoveredPart(part.id)}
-                            onMouseLeave={() => setHoveredPart(null)}
-                            onClick={() => setSelectedPart(part)}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="top"
-                          className="max-w-xs bg-popover border-primary/20 animate-fade-in"
-                        >
-                          <p className="font-semibold">{part.name}</p>
-                          <p className="text-xs text-muted-foreground">{part.nameEn}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </div>
-                </TooltipProvider>
-              </TabsContent>
-            </Tabs>
+            <div className="relative">
+              <button
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+              <div className={`rounded-lg overflow-hidden border border-border shadow-lg ${
+                isFullscreen ? "fixed inset-4 z-50" : "aspect-video"
+              }`}>
+                <iframe
+                  src="https://sketchfab.com/models/3bad38124b784eafa9f16740fbb9f23e/embed?autospin=0.2&autostart=1&ui_theme=dark"
+                  className="w-full h-full"
+                  allow="autoplay; fullscreen; xr-spatial-tracking"
+                  allowFullScreen
+                />
+              </div>
+              {isFullscreen && (
+                <button
+                  onClick={() => setIsFullscreen(false)}
+                  className="fixed top-6 right-6 z-50 p-3 bg-background hover:bg-accent rounded-lg shadow-lg transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Użyj myszki aby obracać • Scroll aby przybliżać • Prawy przycisk aby przesuwać
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -299,12 +637,40 @@ export default function AircraftParts() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lista wszystkich części</CardTitle>
+          <CardTitle>🛩️ I. Części Zewnętrzne Samolotu</CardTitle>
+          <p className="text-sm text-muted-foreground">External Aircraft Parts</p>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[300px] pr-4">
+          <ScrollArea className="h-[400px] pr-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {aircraftParts.map((part) => (
+              {aircraftParts.filter(p => p.category === "external").map((part) => (
+                <button
+                  key={part.id}
+                  onClick={() => setSelectedPart(part)}
+                  className={`p-3 rounded-lg border text-left transition-all hover:shadow-md ${
+                    selectedPart?.id === part.id
+                      ? "bg-primary/10 border-primary shadow-sm"
+                      : "bg-card border-border hover:bg-accent"
+                  }`}
+                >
+                  <p className="font-semibold text-sm">{part.name}</p>
+                  <p className="text-xs text-muted-foreground">{part.nameEn}</p>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>⚙️ II. Części Wewnętrzne Samolotu</CardTitle>
+          <p className="text-sm text-muted-foreground">Internal Components</p>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[400px] pr-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {aircraftParts.filter(p => p.category === "internal").map((part) => (
                 <button
                   key={part.id}
                   onClick={() => setSelectedPart(part)}
