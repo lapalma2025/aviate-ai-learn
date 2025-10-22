@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, TrendingUp, Award, Target, Calendar } from "lucide-react";
+import { BarChart3, TrendingUp, Award, Target, Calendar, FolderOpen } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const CATEGORIES = [
+  { value: 'operational_procedures', label: 'Procedury operacyjne' },
+  { value: 'flight_performance_planning', label: 'Osiągi i planowanie' },
+  { value: 'meteorology', label: 'Meteorologia' },
+  { value: 'navigation', label: 'Nawigacja' },
+  { value: 'aircraft_general_knowledge', label: 'Wiedza ogólna o samolocie' },
+  { value: 'principles_of_flight', label: 'Zasady lotu' },
+  { value: 'communications', label: 'Łączność' },
+  { value: 'air_law', label: 'Prawo lotnicze' },
+];
 
 const Stats = () => {
   const [stats, setStats] = useState({
@@ -14,6 +26,7 @@ const Stats = () => {
     bestExamScore: 0,
     recentProgress: [] as { date: string; correct: number; total: number }[],
   });
+  const [categoryStats, setCategoryStats] = useState<Record<string, { correct: number; total: number; examScore: number; examCount: number }>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,6 +82,44 @@ const Stats = () => {
           total: dayProgress?.length || 0,
         });
       }
+
+      // Calculate category statistics
+      const catStats: Record<string, { correct: number; total: number; examScore: number; examCount: number }> = {};
+      
+      // Stats from learning mode
+      if (progress) {
+        for (const p of progress) {
+          const { data: question } = await supabase
+            .from('questions')
+            .select('category')
+            .eq('id', p.question_id)
+            .single();
+          
+          if (question?.category) {
+            if (!catStats[question.category]) {
+              catStats[question.category] = { correct: 0, total: 0, examScore: 0, examCount: 0 };
+            }
+            catStats[question.category].total++;
+            if (p.is_correct) catStats[question.category].correct++;
+          }
+        }
+      }
+
+      // Stats from exams per category
+      if (exams) {
+        for (const exam of exams) {
+          const category = exam.category || 'all';
+          if (category !== 'all') {
+            if (!catStats[category]) {
+              catStats[category] = { correct: 0, total: 0, examScore: 0, examCount: 0 };
+            }
+            catStats[category].examCount++;
+            catStats[category].examScore += exam.score || 0;
+          }
+        }
+      }
+
+      setCategoryStats(catStats);
 
       setStats({
         totalAnswered,
@@ -161,46 +212,107 @@ const Stats = () => {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Postęp w ostatnich 7 dniach
-          </CardTitle>
-          <CardDescription>Liczba poprawnych odpowiedzi każdego dnia</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {stats.recentProgress.map((day) => {
-              const percentage = day.total > 0 ? (day.correct / day.total) * 100 : 0;
-              const date = new Date(day.date);
-              const formattedDate = date.toLocaleDateString('pl-PL', {
-                weekday: 'short',
-                day: 'numeric',
-                month: 'short',
-              });
+      <Tabs defaultValue="overall" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overall">Ogólne</TabsTrigger>
+          <TabsTrigger value="categories">Kategorie</TabsTrigger>
+        </TabsList>
 
-              return (
-                <div key={day.date} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{formattedDate}</span>
-                    <span className="font-medium">
-                      {day.correct} / {day.total}
-                    </span>
-                  </div>
-                  <Progress value={percentage} />
+        <TabsContent value="overall" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Postęp w ostatnich 7 dniach
+              </CardTitle>
+              <CardDescription>Liczba poprawnych odpowiedzi każdego dnia</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {stats.recentProgress.map((day) => {
+                  const percentage = day.total > 0 ? (day.correct / day.total) * 100 : 0;
+                  const date = new Date(day.date);
+                  const formattedDate = date.toLocaleDateString('pl-PL', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                  });
+
+                  return (
+                    <div key={day.date} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{formattedDate}</span>
+                        <span className="font-medium">
+                          {day.correct} / {day.total}
+                        </span>
+                      </div>
+                      <Progress value={percentage} />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {stats.totalAnswered === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  Zacznij naukę, aby zobaczyć swoje statystyki!
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          {stats.totalAnswered === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              Zacznij naukę, aby zobaczyć swoje statystyki!
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <TabsContent value="categories" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FolderOpen className="h-5 w-5" />
+                Statystyki według kategorii
+              </CardTitle>
+              <CardDescription>Twoje wyniki w poszczególnych kategoriach</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {CATEGORIES.map((category) => {
+                  const catData = categoryStats[category.value];
+                  const learningAccuracy = catData?.total > 0 
+                    ? (catData.correct / catData.total) * 100 
+                    : 0;
+                  const examAvg = catData?.examCount > 0
+                    ? catData.examScore / catData.examCount
+                    : 0;
+
+                  return (
+                    <div key={category.value} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-sm">{category.label}</h4>
+                        <div className="flex gap-4 text-xs text-muted-foreground">
+                          <span>Nauka: {Math.round(learningAccuracy)}%</span>
+                          {examAvg > 0 && <span>Egzamin: {Math.round(examAvg)}%</span>}
+                        </div>
+                      </div>
+                      <Progress value={learningAccuracy} />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>
+                          {catData?.correct || 0} / {catData?.total || 0} poprawnych
+                        </span>
+                        {catData?.examCount > 0 && (
+                          <span>{catData.examCount} egzaminów</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {Object.keys(categoryStats).length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  Zacznij naukę, aby zobaczyć statystyki kategorii!
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

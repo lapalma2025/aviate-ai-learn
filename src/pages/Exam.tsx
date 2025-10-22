@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { FileQuestion, Clock, CheckCircle, XCircle, Trophy } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Question {
   id: string;
@@ -19,6 +20,18 @@ interface Question {
 const EXAM_DURATION = 90 * 60; // 90 minutes in seconds
 const TOTAL_QUESTIONS = 50;
 
+const CATEGORIES = [
+  { value: 'all', label: 'Wszystkie kategorie' },
+  { value: 'operational_procedures', label: 'Procedury operacyjne' },
+  { value: 'flight_performance_planning', label: 'Osiągi i planowanie' },
+  { value: 'meteorology', label: 'Meteorologia' },
+  { value: 'navigation', label: 'Nawigacja' },
+  { value: 'aircraft_general_knowledge', label: 'Wiedza ogólna o samolocie' },
+  { value: 'principles_of_flight', label: 'Zasady lotu' },
+  { value: 'communications', label: 'Łączność' },
+  { value: 'air_law', label: 'Prawo lotnicze' },
+];
+
 const Exam = () => {
   const [examStarted, setExamStarted] = useState(false);
   const [examCompleted, setExamCompleted] = useState(false);
@@ -28,6 +41,7 @@ const Exam = () => {
   const [timeRemaining, setTimeRemaining] = useState(EXAM_DURATION);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [score, setScore] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,18 +62,21 @@ const Exam = () => {
 
   const startExam = async () => {
     try {
-      // Fetch 50 random questions
-      const { data, error } = await supabase
-        .from('questions')
-        .select('*')
-        .limit(200);
+      // Fetch questions based on category
+      let query = supabase.from('questions').select('*');
+      
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory as any);
+      }
+      
+      const { data, error } = await query.limit(200);
 
       if (error) throw error;
 
       if (!data || data.length < TOTAL_QUESTIONS) {
         toast({
           title: "Za mało pytań",
-          description: `Baza zawiera tylko ${data?.length || 0} pytań. Potrzebne minimum ${TOTAL_QUESTIONS}.`,
+          description: `W wybranej kategorii jest tylko ${data?.length || 0} pytań. Potrzebne minimum ${TOTAL_QUESTIONS}.`,
           variant: "destructive",
         });
         return;
@@ -78,6 +95,7 @@ const Exam = () => {
           .insert({
             user_id: user.id,
             total_questions: TOTAL_QUESTIONS,
+            category: selectedCategory,
           })
           .select()
           .single();
@@ -252,6 +270,26 @@ const Exam = () => {
                     38 poprawnych odpowiedzi z 50
                   </p>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Wybierz kategorię pytań:
+                </label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

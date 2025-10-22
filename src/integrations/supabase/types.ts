@@ -58,6 +58,7 @@ export type Database = {
       }
       exam_sessions: {
         Row: {
+          category: string | null
           completed_at: string | null
           id: string
           score: number | null
@@ -67,6 +68,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           completed_at?: string | null
           id?: string
           score?: number | null
@@ -76,6 +78,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           completed_at?: string | null
           id?: string
           score?: number | null
