@@ -778,8 +778,8 @@ export default function AircraftParts() {
                   <h3 className="text-xl font-bold text-primary">{selectedPart.name}</h3>
                   <p className="text-sm text-muted-foreground">{selectedPart.nameEn}</p>
                 </div>
-                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <p className="text-sm leading-relaxed break-words whitespace-normal">{selectedPart.description}</p>
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 overflow-hidden">
+                  <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere whitespace-normal w-full">{selectedPart.description}</p>
                 </div>
               </div>
             ) : (
