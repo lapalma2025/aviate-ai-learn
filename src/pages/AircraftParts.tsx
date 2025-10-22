@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { X, Maximize2 } from "lucide-react";
 import cessnaImage from "@/assets/cessna-side-view.png";
 
 interface AircraftPart {
@@ -159,6 +160,7 @@ const aircraftParts: AircraftPart[] = [
 export default function AircraftParts() {
   const [selectedPart, setSelectedPart] = useState<AircraftPart | null>(null);
   const [hoveredPart, setHoveredPart] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -166,7 +168,7 @@ export default function AircraftParts() {
         <CardHeader>
           <CardTitle className="text-2xl">Budowa samolotu - Cessna 172</CardTitle>
           <p className="text-muted-foreground">
-            Najedź myszką lub kliknij na część samolotu, aby poznać jej nazwę i funkcję
+            Obróć model 3D lub wybierz część z listy, aby poznać jej funkcję
           </p>
         </CardHeader>
       </Card>
@@ -174,48 +176,89 @@ export default function AircraftParts() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardContent className="p-6">
-            <TooltipProvider delayDuration={0}>
-              <div className="relative w-full">
-                <img
-                  src={cessnaImage}
-                  alt="Cessna 172"
-                  className="w-full h-auto"
-                />
-                {aircraftParts.map((part) => (
-                  <Tooltip key={part.id}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={`absolute cursor-pointer transition-all duration-200 ${
-                          hoveredPart === part.id
-                            ? "bg-primary/30 ring-2 ring-primary shadow-lg shadow-primary/50"
-                            : "hover:bg-primary/20"
-                        } ${
-                          selectedPart?.id === part.id
-                            ? "bg-primary/40 ring-2 ring-primary"
-                            : ""
-                        }`}
-                        style={{
-                          left: `${part.position.x}%`,
-                          top: `${part.position.y}%`,
-                          width: `${part.position.width}%`,
-                          height: `${part.position.height}%`,
-                        }}
-                        onMouseEnter={() => setHoveredPart(part.id)}
-                        onMouseLeave={() => setHoveredPart(null)}
-                        onClick={() => setSelectedPart(part)}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="max-w-xs bg-popover border-primary/20 animate-fade-in"
+            <Tabs defaultValue="3d" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="3d">Model 3D (interaktywny)</TabsTrigger>
+                <TabsTrigger value="diagram">Diagram 2D</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="3d" className="mt-0">
+                <div className="relative">
+                  <button
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
+                  <div className={`rounded-lg overflow-hidden border border-border shadow-lg ${
+                    isFullscreen ? "fixed inset-4 z-50" : "aspect-video"
+                  }`}>
+                    <iframe
+                      src="https://sketchfab.com/models/3bad38124b784eafa9f16740fbb9f23e/embed?autospin=0.2&autostart=1&ui_theme=dark"
+                      className="w-full h-full"
+                      allow="autoplay; fullscreen; xr-spatial-tracking"
+                      allowFullScreen
+                    />
+                  </div>
+                  {isFullscreen && (
+                    <button
+                      onClick={() => setIsFullscreen(false)}
+                      className="fixed top-6 right-6 z-50 p-3 bg-background hover:bg-accent rounded-lg shadow-lg transition-colors"
                     >
-                      <p className="font-semibold">{part.name}</p>
-                      <p className="text-xs text-muted-foreground">{part.nameEn}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-            </TooltipProvider>
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    Użyj myszki aby obracać • Scroll aby przybliżać • Prawy przycisk aby przesuwać
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="diagram" className="mt-0">
+                <TooltipProvider delayDuration={0}>
+                  <div className="relative w-full">
+                    <img
+                      src={cessnaImage}
+                      alt="Cessna 172"
+                      className="w-full h-auto rounded-lg"
+                    />
+                    {aircraftParts.map((part) => (
+                      <Tooltip key={part.id}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={`absolute cursor-pointer transition-all duration-200 rounded ${
+                              hoveredPart === part.id
+                                ? "bg-primary/30 ring-2 ring-primary shadow-lg shadow-primary/50"
+                                : "hover:bg-primary/20"
+                            } ${
+                              selectedPart?.id === part.id
+                                ? "bg-primary/40 ring-2 ring-primary"
+                                : ""
+                            }`}
+                            style={{
+                              left: `${part.position.x}%`,
+                              top: `${part.position.y}%`,
+                              width: `${part.position.width}%`,
+                              height: `${part.position.height}%`,
+                            }}
+                            onMouseEnter={() => setHoveredPart(part.id)}
+                            onMouseLeave={() => setHoveredPart(null)}
+                            onClick={() => setSelectedPart(part)}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="max-w-xs bg-popover border-primary/20 animate-fade-in"
+                        >
+                          <p className="font-semibold">{part.name}</p>
+                          <p className="text-xs text-muted-foreground">{part.nameEn}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </TooltipProvider>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
