@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Maximize2, Check } from "lucide-react";
+import { X, Check } from "lucide-react";
+import Aircraft3DViewer from "@/components/Aircraft3DViewer";
 
 interface AircraftPart {
   id: number;
@@ -156,7 +157,6 @@ const aircraftParts: AircraftPart[] = [
 
 export default function AircraftParts() {
   const [selectedPart, setSelectedPart] = useState<AircraftPart | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -171,36 +171,19 @@ export default function AircraftParts() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
-          <CardContent className="p-6">
-            <div className="relative">
-              <button
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors shadow-md"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </button>
-              <div className={`rounded-lg overflow-hidden border border-border shadow-lg ${
-                isFullscreen ? "fixed inset-4 z-50 bg-background" : "aspect-video"
-              }`}>
-                <iframe
-                  src="https://sketchfab.com/models/3bad38124b784eafa9f16740fbb9f23e/embed?autospin=0.2&autostart=1&ui_theme=dark&preload=1"
-                  className="w-full h-full"
-                  allow="autoplay; fullscreen; xr-spatial-tracking"
-                  allowFullScreen
-                />
-              </div>
-              {isFullscreen && (
-                <button
-                  onClick={() => setIsFullscreen(false)}
-                  className="fixed top-6 right-6 z-50 p-3 bg-background hover:bg-accent rounded-lg shadow-lg transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              )}
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Użyj myszki aby obracać • Scroll aby przybliżać • Prawy przycisk aby przesuwać
-              </p>
+          <CardContent className="p-0">
+            <div className="h-[600px] rounded-lg overflow-hidden">
+              <Aircraft3DViewer
+                selectedPartId={selectedPart?.id || null}
+                onPartClick={(partId) => {
+                  const part = aircraftParts.find((p) => p.id === partId);
+                  if (part) setSelectedPart(part);
+                }}
+              />
             </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center px-6 pb-4">
+              Użyj myszki aby obracać • Scroll aby przybliżać • Kliknij na część aby zobaczyć szczegóły
+            </p>
           </CardContent>
         </Card>
 
