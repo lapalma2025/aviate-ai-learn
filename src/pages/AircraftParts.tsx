@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Maximize2 } from "lucide-react";
-import cessnaImage from "@/assets/cessna-side-view.png";
+import { X, Maximize2, Check } from "lucide-react";
 
 interface AircraftPart {
   id: number;
@@ -159,7 +156,6 @@ const aircraftParts: AircraftPart[] = [
 
 export default function AircraftParts() {
   const [selectedPart, setSelectedPart] = useState<AircraftPart | null>(null);
-  const [hoveredPart, setHoveredPart] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   return (
@@ -168,7 +164,7 @@ export default function AircraftParts() {
         <CardHeader>
           <CardTitle className="text-2xl">Budowa samolotu - Cessna 172</CardTitle>
           <p className="text-muted-foreground">
-            Obróć model 3D lub wybierz część z listy, aby poznać jej funkcję
+            Obróć model 3D myszką i wybierz część z listy, aby poznać jej funkcję
           </p>
         </CardHeader>
       </Card>
@@ -176,120 +172,75 @@ export default function AircraftParts() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardContent className="p-6">
-            <Tabs defaultValue="3d" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="3d">Model 3D (interaktywny)</TabsTrigger>
-                <TabsTrigger value="diagram">Diagram 2D</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="3d" className="mt-0">
-                <div className="relative">
-                  <button
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </button>
-                  <div className={`rounded-lg overflow-hidden border border-border shadow-lg ${
-                    isFullscreen ? "fixed inset-4 z-50" : "aspect-video"
-                  }`}>
-                    <iframe
-                      src="https://sketchfab.com/models/3bad38124b784eafa9f16740fbb9f23e/embed?autospin=0.2&autostart=1&ui_theme=dark"
-                      className="w-full h-full"
-                      allow="autoplay; fullscreen; xr-spatial-tracking"
-                      allowFullScreen
-                    />
-                  </div>
-                  {isFullscreen && (
-                    <button
-                      onClick={() => setIsFullscreen(false)}
-                      className="fixed top-6 right-6 z-50 p-3 bg-background hover:bg-accent rounded-lg shadow-lg transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Użyj myszki aby obracać • Scroll aby przybliżać • Prawy przycisk aby przesuwać
-                  </p>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="diagram" className="mt-0">
-                <TooltipProvider delayDuration={0}>
-                  <div className="relative w-full">
-                    <img
-                      src={cessnaImage}
-                      alt="Cessna 172"
-                      className="w-full h-auto rounded-lg"
-                    />
-                    {aircraftParts.map((part) => (
-                      <Tooltip key={part.id}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={`absolute cursor-pointer transition-all duration-200 rounded ${
-                              hoveredPart === part.id
-                                ? "bg-primary/30 ring-2 ring-primary shadow-lg shadow-primary/50"
-                                : "hover:bg-primary/20"
-                            } ${
-                              selectedPart?.id === part.id
-                                ? "bg-primary/40 ring-2 ring-primary"
-                                : ""
-                            }`}
-                            style={{
-                              left: `${part.position.x}%`,
-                              top: `${part.position.y}%`,
-                              width: `${part.position.width}%`,
-                              height: `${part.position.height}%`,
-                            }}
-                            onMouseEnter={() => setHoveredPart(part.id)}
-                            onMouseLeave={() => setHoveredPart(null)}
-                            onClick={() => setSelectedPart(part)}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="top"
-                          className="max-w-xs bg-popover border-primary/20 animate-fade-in"
-                        >
-                          <p className="font-semibold">{part.name}</p>
-                          <p className="text-xs text-muted-foreground">{part.nameEn}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </div>
-                </TooltipProvider>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Szczegóły części
-              {selectedPart && (
+            <div className="relative">
+              <button
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors shadow-md"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+              <div className={`rounded-lg overflow-hidden border border-border shadow-lg ${
+                isFullscreen ? "fixed inset-4 z-50 bg-background" : "aspect-video"
+              }`}>
+                <iframe
+                  src="https://sketchfab.com/models/3bad38124b784eafa9f16740fbb9f23e/embed?autospin=0.2&autostart=1&ui_theme=dark&preload=1"
+                  className="w-full h-full"
+                  allow="autoplay; fullscreen; xr-spatial-tracking"
+                  allowFullScreen
+                />
+              </div>
+              {isFullscreen && (
                 <button
-                  onClick={() => setSelectedPart(null)}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setIsFullscreen(false)}
+                  className="fixed top-6 right-6 z-50 p-3 bg-background hover:bg-accent rounded-lg shadow-lg transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
+              )}
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Użyj myszki aby obracać • Scroll aby przybliżać • Prawy przycisk aby przesuwać
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:sticky lg:top-6">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              {selectedPart ? (
+                <>
+                  <span>Szczegóły części</span>
+                  <button
+                    onClick={() => setSelectedPart(null)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </>
+              ) : (
+                <span>Wybierz część</span>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {selectedPart ? (
               <div className="space-y-4 animate-fade-in">
-                <div>
-                  <h3 className="text-xl font-bold text-primary">{selectedPart.name}</h3>
-                  <p className="text-sm text-muted-foreground">{selectedPart.nameEn}</p>
+                <div className="p-4 bg-primary/10 rounded-lg border-2 border-primary shadow-sm">
+                  <div className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-xl font-bold text-primary">{selectedPart.name}</h3>
+                      <p className="text-sm text-muted-foreground">{selectedPart.nameEn}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="p-4 bg-card rounded-lg border border-border">
                   <p className="text-sm leading-relaxed">{selectedPart.description}</p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                <p>Kliknij na część samolotu,</p>
+                <p>Wybierz część z listy poniżej,</p>
                 <p>aby zobaczyć szczegółowy opis</p>
               </div>
             )}
@@ -300,21 +251,33 @@ export default function AircraftParts() {
       <Card>
         <CardHeader>
           <CardTitle>Lista wszystkich części</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Kliknij na część, aby zobaczyć szczegóły i podświetlić ją na modelu
+          </p>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[300px] pr-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <ScrollArea className="h-[400px] pr-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {aircraftParts.map((part) => (
                 <button
                   key={part.id}
                   onClick={() => setSelectedPart(part)}
-                  className={`p-3 rounded-lg border text-left transition-all hover:shadow-md ${
+                  className={`p-3 rounded-lg border text-left transition-all hover:shadow-md group relative ${
                     selectedPart?.id === part.id
-                      ? "bg-primary/10 border-primary shadow-sm"
-                      : "bg-card border-border hover:bg-accent"
+                      ? "bg-primary/10 border-primary shadow-md ring-2 ring-primary/50"
+                      : "bg-card border-border hover:bg-accent hover:border-primary/30"
                   }`}
                 >
-                  <p className="font-semibold text-sm">{part.name}</p>
+                  {selectedPart?.id === part.id && (
+                    <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-1">
+                      <Check className="h-3 w-3" />
+                    </div>
+                  )}
+                  <p className={`font-semibold text-sm ${
+                    selectedPart?.id === part.id ? "text-primary" : ""
+                  }`}>
+                    {part.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">{part.nameEn}</p>
                 </button>
               ))}
