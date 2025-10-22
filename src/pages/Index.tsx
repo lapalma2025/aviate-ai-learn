@@ -133,7 +133,7 @@ const Index = () => {
               <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 transition-transform hover:scale-110 duration-300">
                 <Brain className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">AI Wyjaśnienia</h3>
+              <h3 className="text-2xl font-bold mb-4">Wyjaśnienia</h3>
               <p className="text-muted-foreground">
                 Szczegółowe wyjaśnienia do każdej odpowiedzi z możliwością zadania pytania AI, jeśli coś pozostanie
                 niejasne.{" "}
