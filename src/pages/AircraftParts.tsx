@@ -2,10 +2,86 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Maximize2 } from "lucide-react";
+
+// External parts images
 import fuselageImg from "@/assets/parts/fuselage.png";
-import propellerImg from "@/assets/parts/propeller.png";
-import wingImg from "@/assets/parts/wing.png";
 import engineImg from "@/assets/parts/engine.png";
+import propellerImg from "@/assets/parts/propeller.png";
+import spinnerImg from "@/assets/parts/spinner.png";
+import cowlingImg from "@/assets/parts/cowling.png";
+import airIntakeImg from "@/assets/parts/air-intake.png";
+import exhaustImg from "@/assets/parts/exhaust.png";
+import oilCoolerImg from "@/assets/parts/oil-cooler.png";
+import wingImg from "@/assets/parts/wing.png";
+import aileronImg from "@/assets/parts/aileron.png";
+import flapImg from "@/assets/parts/flap.png";
+import wingStrutImg from "@/assets/parts/wing-strut.png";
+import wingtipImg from "@/assets/parts/wingtip.png";
+import navLightsImg from "@/assets/parts/nav-lights.png";
+import strobeLightsImg from "@/assets/parts/strobe-lights.png";
+import fuelCapImg from "@/assets/parts/fuel-cap.png";
+import pitotTubeImg from "@/assets/parts/pitot-tube.png";
+import staticPortImg from "@/assets/parts/static-port.png";
+import verticalStabilizerImg from "@/assets/parts/vertical-stabilizer.png";
+import rudderImg from "@/assets/parts/rudder.png";
+import horizontalStabilizerImg from "@/assets/parts/horizontal-stabilizer.png";
+import elevatorImg from "@/assets/parts/elevator.png";
+import trimTabImg from "@/assets/parts/trim-tab.png";
+import noseWheelImg from "@/assets/parts/nose-wheel.png";
+import mainWheelsImg from "@/assets/parts/main-wheels.png";
+import landingGearStrutImg from "@/assets/parts/landing-gear-strut.png";
+import wheelFairingImg from "@/assets/parts/wheel-fairing.png";
+import brakeSystemImg from "@/assets/parts/brake-system.png";
+import windshieldImg from "@/assets/parts/windshield.png";
+import doorImg from "@/assets/parts/door.png";
+import stepHandleImg from "@/assets/parts/step-handle.png";
+import antennaImg from "@/assets/parts/antenna.png";
+import eltAntennaImg from "@/assets/parts/elt-antenna.png";
+import staticWickImg from "@/assets/parts/static-wick.png";
+
+// Internal parts images
+import controlYokeImg from "@/assets/parts/control-yoke.png";
+import rudderPedalsImg from "@/assets/parts/rudder-pedals.png";
+import throttleImg from "@/assets/parts/throttle.png";
+import mixtureControlImg from "@/assets/parts/mixture-control.png";
+import carbHeatImg from "@/assets/parts/carb-heat.png";
+import flapLeverImg from "@/assets/parts/flap-lever.png";
+import trimWheelImg from "@/assets/parts/trim-wheel.png";
+import parkingBrakeImg from "@/assets/parts/parking-brake.png";
+import fuelSelectorImg from "@/assets/parts/fuel-selector.png";
+import primerImg from "@/assets/parts/primer.png";
+import airspeedIndicatorImg from "@/assets/parts/airspeed-indicator.png";
+import attitudeIndicatorImg from "@/assets/parts/attitude-indicator.png";
+import altimeterImg from "@/assets/parts/altimeter.png";
+import turnCoordinatorImg from "@/assets/parts/turn-coordinator.png";
+import headingIndicatorImg from "@/assets/parts/heading-indicator.png";
+import verticalSpeedIndicatorImg from "@/assets/parts/vertical-speed-indicator.png";
+import magneticCompassImg from "@/assets/parts/magnetic-compass.png";
+import tachometerImg from "@/assets/parts/tachometer.png";
+import oilPressureGaugeImg from "@/assets/parts/oil-pressure-gauge.png";
+import oilTempGaugeImg from "@/assets/parts/oil-temp-gauge.png";
+import fuelGaugesImg from "@/assets/parts/fuel-gauges.png";
+import ammeterImg from "@/assets/parts/ammeter.png";
+import voltmeterImg from "@/assets/parts/voltmeter.png";
+import clockImg from "@/assets/parts/clock.png";
+import batteryImg from "@/assets/parts/battery.png";
+import alternatorImg from "@/assets/parts/alternator.png";
+import circuitBreakersImg from "@/assets/parts/circuit-breakers.png";
+import masterSwitchImg from "@/assets/parts/master-switch.png";
+import avionicsMasterImg from "@/assets/parts/avionics-master.png";
+import fuelTanksImg from "@/assets/parts/fuel-tanks.png";
+import fuelLinesImg from "@/assets/parts/fuel-lines.png";
+import fuelStrainerImg from "@/assets/parts/fuel-strainer.png";
+import fuelPumpImg from "@/assets/parts/fuel-pump.png";
+import fuelVentImg from "@/assets/parts/fuel-vent.png";
+import lubricationSystemImg from "@/assets/parts/lubrication-system.png";
+import coolingSystemImg from "@/assets/parts/cooling-system.png";
+import magnetosImg from "@/assets/parts/magnetos.png";
+import sparkPlugsImg from "@/assets/parts/spark-plugs.png";
+import ignitionSwitchImg from "@/assets/parts/ignition-switch.png";
+import seatbeltsImg from "@/assets/parts/seatbelts.png";
+import fireExtinguisherImg from "@/assets/parts/fire-extinguisher.png";
+import eltImg from "@/assets/parts/elt.png";
 
 interface AircraftPart {
   id: number;
@@ -48,6 +124,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Spinner",
     description: "Aerodynamiczna osłona centralnej części śmigła, poprawia aerodynamikę i zmniejsza opór powietrza.",
     category: "external",
+    image: spinnerImg,
   },
   {
     id: 5,
@@ -55,6 +132,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Cowling",
     description: "Kieruje przepływ powietrza chłodzącego i chroni silnik, zapewniając odpowiednią temperaturę pracy podczas lotu.",
     category: "external",
+    image: cowlingImg,
   },
   {
     id: 6,
@@ -62,6 +140,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Air Intake",
     description: "Dostarcza powietrze do silnika, niezbędne do procesu spalania paliwa.",
     category: "external",
+    image: airIntakeImg,
   },
   {
     id: 7,
@@ -69,6 +148,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Exhaust",
     description: "Odprowadza spaliny z silnika, minimalizując hałas i zapewniając bezpieczeństwo.",
     category: "external",
+    image: exhaustImg,
   },
   {
     id: 8,
@@ -76,6 +156,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Oil Cooler",
     description: "Obniża temperaturę oleju silnikowego, zapobiegając przegrzaniu układu smarowania.",
     category: "external",
+    image: oilCoolerImg,
   },
   {
     id: 9,
@@ -91,6 +172,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Aileron",
     description: "Kontroluje przechylenie samolotu (roll). Znajduje się na tylnej krawędzi skrzydła i porusza się przeciwnie na obu skrzydłach.",
     category: "external",
+    image: aileronImg,
   },
   {
     id: 11,
@@ -98,6 +180,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Flap",
     description: "Zwiększa siłę nośną przy starcie i lądowaniu. Wysuwana z tylnej krawędzi skrzydła, zwiększa krzywiznę profilu.",
     category: "external",
+    image: flapImg,
   },
   {
     id: 12,
@@ -105,6 +188,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Wing Strut",
     description: "Wzmacnia strukturę skrzydła w samolotach z wysokim płatem (jak Cessna 172). Przenosi obciążenia ze skrzydła na kadłub.",
     category: "external",
+    image: wingStrutImg,
   },
   {
     id: 13,
@@ -112,6 +196,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Wingtip",
     description: "Zakończenie skrzydła, często wyposażone w lampy pozycyjne. Może mieć modyfikacje aerodynamiczne.",
     category: "external",
+    image: wingtipImg,
   },
   {
     id: 14,
@@ -119,6 +204,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Navigation Lights",
     description: "Ułatwiają widoczność w nocy - zielone na prawym skrzydle, czerwone na lewym, białe z tyłu. Informują o orientacji samolotu.",
     category: "external",
+    image: navLightsImg,
   },
   {
     id: 15,
@@ -126,6 +212,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Strobe Lights",
     description: "Migające światła zwiększające widoczność samolotu dla innych statków powietrznych.",
     category: "external",
+    image: strobeLightsImg,
   },
   {
     id: 16,
@@ -133,6 +220,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuel Tank Cap",
     description: "Punkt tankowania paliwa, zazwyczaj umieszczony na górnej powierzchni skrzydła.",
     category: "external",
+    image: fuelCapImg,
   },
   {
     id: 17,
@@ -140,6 +228,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Pitot Tube",
     description: "Mierzy prędkość powietrza, umieszczona w niezmąconym strumieniu. Dostarcza dane do wskaźnika prędkości.",
     category: "external",
+    image: pitotTubeImg,
   },
   {
     id: 18,
@@ -147,6 +236,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Static Port",
     description: "Mierzy ciśnienie atmosferyczne, dostarcza danych dla wysokościomierza, wariometru i prędkościomierza.",
     category: "external",
+    image: staticPortImg,
   },
   {
     id: 19,
@@ -154,6 +244,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Vertical Stabilizer",
     description: "Stabilizuje samolot kierunkowo, zapobiega niepożądanym odchyleniom od kursu podczas lotu.",
     category: "external",
+    image: verticalStabilizerImg,
   },
   {
     id: 20,
@@ -161,6 +252,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Rudder",
     description: "Kontroluje skręt w lewo/prawo (yaw). Znajduje się na tylnej krawędzi statecznika pionowego.",
     category: "external",
+    image: rudderImg,
   },
   {
     id: 21,
@@ -168,6 +260,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Horizontal Stabilizer",
     description: "Stabilizuje samolot w osi podłużnej, zapobiega niekontrolowanym ruchom góra-dół podczas lotu.",
     category: "external",
+    image: horizontalStabilizerImg,
   },
   {
     id: 22,
@@ -175,6 +268,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Elevator",
     description: "Kontroluje wznoszenie i opadanie (pitch). Znajduje się na tylnej krawędzi statecznika poziomego.",
     category: "external",
+    image: elevatorImg,
   },
   {
     id: 23,
@@ -182,6 +276,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Trim Tab",
     description: "Zmniejsza siłę potrzebną na sterze, pozwala na zbalansowanie samolotu w locie bez ciągłego nacisku na drążek.",
     category: "external",
+    image: trimTabImg,
   },
   {
     id: 24,
@@ -189,6 +284,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Nose Wheel",
     description: "Główne koło sterujące na ziemi, umożliwia skręcanie podczas kołowania. Połączone z pedalami steru kierunku.",
     category: "external",
+    image: noseWheelImg,
   },
   {
     id: 25,
@@ -196,6 +292,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Main Wheels",
     description: "Podpierają samolot przy lądowaniu i przyjmują większość ciężaru podczas operacji naziemnych.",
     category: "external",
+    image: mainWheelsImg,
   },
   {
     id: 26,
@@ -203,6 +300,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Landing Gear Strut",
     description: "Absorbuje uderzenia podczas lądowania, zapewnia płynne kołowanie po nierównej powierzchni.",
     category: "external",
+    image: landingGearStrutImg,
   },
   {
     id: 27,
@@ -210,6 +308,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Wheel Fairing",
     description: "Aerodynamiczna osłona podwozia (opcjonalna), zmniejsza opór powietrza.",
     category: "external",
+    image: wheelFairingImg,
   },
   {
     id: 28,
@@ -217,6 +316,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Brake System",
     description: "Zazwyczaj hydrauliczny układ hamulców na kołach głównych, kontrolowany przez pedały.",
     category: "external",
+    image: brakeSystemImg,
   },
   {
     id: 29,
@@ -224,6 +324,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Windshield",
     description: "Chroni pilotów przed wiatrem, wykonana z wytrzymałego, przezroczystego materiału odpornego na wysokie prędkości.",
     category: "external",
+    image: windshieldImg,
   },
   {
     id: 30,
@@ -231,6 +332,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Door",
     description: "Wejście do kabiny, zazwyczaj po obu stronach kadłuba.",
     category: "external",
+    image: doorImg,
   },
   {
     id: 31,
@@ -238,6 +340,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Step & Handle",
     description: "Ułatwiają wejście do kabiny samolotu.",
     category: "external",
+    image: stepHandleImg,
   },
   {
     id: 32,
@@ -245,6 +348,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Antenna",
     description: "Anteny radiowe i GPS umożliwiają komunikację z kontrolą ruchu oraz nawigację.",
     category: "external",
+    image: antennaImg,
   },
   {
     id: 33,
@@ -252,6 +356,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "ELT Antenna",
     description: "Antena lokalizatora awaryjnego, automatycznie wysyła sygnał ratunkowy po wypadku.",
     category: "external",
+    image: eltAntennaImg,
   },
   {
     id: 34,
@@ -259,6 +364,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Static Wick",
     description: "Odprowadza ładunki elektrostatyczne z końcówek skrzydeł i usterzenia.",
     category: "external",
+    image: staticWickImg,
   },
   
   // CZĘŚCI WEWNĘTRZNE
@@ -268,6 +374,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Control Yoke",
     description: "Główny element sterowania samolotem - ruch do przodu/tyłu kontroluje pitch (wznoszenie/opadanie), obrót kontroluje roll (przechylenie).",
     category: "internal",
+    image: controlYokeImg,
   },
   {
     id: 36,
@@ -275,6 +382,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Rudder Pedals",
     description: "Kontrolują ster kierunku (yaw) oraz hamulce kół głównych podczas kołowania.",
     category: "internal",
+    image: rudderPedalsImg,
   },
   {
     id: 37,
@@ -282,6 +390,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Throttle",
     description: "Reguluje moc silnika poprzez kontrolę ilości paliwa i powietrza dostarczanych do cylindrów.",
     category: "internal",
+    image: throttleImg,
   },
   {
     id: 38,
@@ -289,6 +398,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Mixture Control",
     description: "Reguluje stosunek paliwa do powietrza, wymaga dostosowania na różnych wysokościach.",
     category: "internal",
+    image: mixtureControlImg,
   },
   {
     id: 39,
@@ -296,6 +406,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Carburetor Heat",
     description: "Doprowadza ciepłe powietrze do gaźnika, zapobiega oblodzeniu w wilgotnych warunkach.",
     category: "internal",
+    image: carbHeatImg,
   },
   {
     id: 40,
@@ -303,6 +414,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Flap Lever",
     description: "Kontroluje wysunięcie klap zwiększających siłę nośną przy starcie i lądowaniu.",
     category: "internal",
+    image: flapLeverImg,
   },
   {
     id: 41,
@@ -310,6 +422,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Trim Wheel",
     description: "Dostosowuje trymer steru wysokości, redukując potrzebę ciągłego nacisku na drążek.",
     category: "internal",
+    image: trimWheelImg,
   },
   {
     id: 42,
@@ -317,6 +430,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Parking Brake",
     description: "Blokuje koła podczas postoju samolotu na ziemi.",
     category: "internal",
+    image: parkingBrakeImg,
   },
   {
     id: 43,
@@ -324,6 +438,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuel Selector",
     description: "Wybiera źródło paliwa: lewy zbiornik (LEFT), prawy (RIGHT) lub oba (BOTH).",
     category: "internal",
+    image: fuelSelectorImg,
   },
   {
     id: 44,
@@ -331,6 +446,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Primer",
     description: "Ręczna pompka wtryskująca paliwo bezpośrednio do cylindrów przed uruchomieniem silnika.",
     category: "internal",
+    image: primerImg,
   },
   {
     id: 45,
@@ -338,6 +454,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Airspeed Indicator",
     description: "Pokazuje prędkość samolotu względem otaczającego powietrza w węzłach lub mph.",
     category: "internal",
+    image: airspeedIndicatorImg,
   },
   {
     id: 46,
@@ -345,6 +462,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Attitude Indicator",
     description: "Wyświetla położenie samolotu względem horyzontu - kluczowy przyrząd w locie w chmurach.",
     category: "internal",
+    image: attitudeIndicatorImg,
   },
   {
     id: 47,
@@ -352,6 +470,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Altimeter",
     description: "Mierzy wysokość samolotu nad poziomem morza na podstawie ciśnienia atmosferycznego.",
     category: "internal",
+    image: altimeterImg,
   },
   {
     id: 48,
@@ -359,6 +478,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Turn Coordinator",
     description: "Pokazuje tempo skrętu i koordynację (czy skręt jest prawidłowo wykonany bez poślizgu).",
     category: "internal",
+    image: turnCoordinatorImg,
   },
   {
     id: 49,
@@ -366,6 +486,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Heading Indicator",
     description: "Żyroskopowy wskaźnik kursu, dokładniejszy niż kompas magnetyczny podczas manewrów.",
     category: "internal",
+    image: headingIndicatorImg,
   },
   {
     id: 50,
@@ -373,6 +494,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Vertical Speed Indicator",
     description: "Pokazuje prędkość wznoszenia lub opadania samolotu w stopach na minutę.",
     category: "internal",
+    image: verticalSpeedIndicatorImg,
   },
   {
     id: 51,
@@ -380,6 +502,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Magnetic Compass",
     description: "Podstawowy instrument nawigacyjny wskazujący kierunek magnetyczny północy.",
     category: "internal",
+    image: magneticCompassImg,
   },
   {
     id: 52,
@@ -387,6 +510,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Tachometer",
     description: "Pokazuje obroty silnika w RPM (obrotach na minutę).",
     category: "internal",
+    image: tachometerImg,
   },
   {
     id: 53,
@@ -394,6 +518,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Oil Pressure Gauge",
     description: "Monitoruje ciśnienie oleju w układzie smarowania silnika.",
     category: "internal",
+    image: oilPressureGaugeImg,
   },
   {
     id: 54,
@@ -401,6 +526,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Oil Temperature Gauge",
     description: "Pokazuje temperaturę oleju silnikowego.",
     category: "internal",
+    image: oilTempGaugeImg,
   },
   {
     id: 55,
@@ -408,6 +534,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuel Quantity Gauges",
     description: "Pokazują ilość paliwa w każdym zbiorniku.",
     category: "internal",
+    image: fuelGaugesImg,
   },
   {
     id: 56,
@@ -415,6 +542,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Ammeter",
     description: "Pokazuje obciążenie układu elektrycznego i stan ładowania akumulatora.",
     category: "internal",
+    image: ammeterImg,
   },
   {
     id: 57,
@@ -422,6 +550,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Voltmeter",
     description: "Mierzy napięcie w układzie elektrycznym samolotu.",
     category: "internal",
+    image: voltmeterImg,
   },
   {
     id: 58,
@@ -429,6 +558,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Clock",
     description: "Standardowy przyrząd do pomiaru czasu lotu i nawigacji.",
     category: "internal",
+    image: clockImg,
   },
   {
     id: 59,
@@ -436,6 +566,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Battery",
     description: "Magazynuje energię elektryczną do uruchomienia silnika i zasilania systemów przy wyłączonym silniku.",
     category: "internal",
+    image: batteryImg,
   },
   {
     id: 60,
@@ -443,6 +574,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Alternator",
     description: "Generuje prąd elektryczny podczas pracy silnika, ładuje akumulator i zasila systemy.",
     category: "internal",
+    image: alternatorImg,
   },
   {
     id: 61,
@@ -450,6 +582,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Circuit Breakers",
     description: "Chronią układy elektryczne przed przeciążeniem i zwarciem.",
     category: "internal",
+    image: circuitBreakersImg,
   },
   {
     id: 62,
@@ -457,6 +590,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Master Switch",
     description: "Główny wyłącznik zasilania elektrycznego samolotu.",
     category: "internal",
+    image: masterSwitchImg,
   },
   {
     id: 63,
@@ -464,6 +598,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Avionics Master",
     description: "Oddzielny wyłącznik dla systemów radiowych i nawigacyjnych.",
     category: "internal",
+    image: avionicsMasterImg,
   },
   {
     id: 64,
@@ -471,6 +606,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuel Tanks",
     description: "Zazwyczaj umieszczone w skrzydłach, przechowują paliwo lotnicze (Avgas 100LL).",
     category: "internal",
+    image: fuelTanksImg,
   },
   {
     id: 65,
@@ -478,6 +614,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuel Lines",
     description: "Transportują paliwo ze zbiorników do silnika.",
     category: "internal",
+    image: fuelLinesImg,
   },
   {
     id: 66,
@@ -485,6 +622,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuel Strainer",
     description: "Oddziela wodę i zanieczyszczenia z paliwa przed dostarczeniem do silnika.",
     category: "internal",
+    image: fuelStrainerImg,
   },
   {
     id: 67,
@@ -492,6 +630,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuel Pump",
     description: "Elektryczna pompa zapasowa wspomaga mechaniczną pompę silnika.",
     category: "internal",
+    image: fuelPumpImg,
   },
   {
     id: 68,
@@ -499,6 +638,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fuel Vent",
     description: "Wyrównuje ciśnienie w zbiorniku paliwa podczas zużycia paliwa.",
     category: "internal",
+    image: fuelVentImg,
   },
   {
     id: 69,
@@ -506,6 +646,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Lubrication System",
     description: "Pompa oleju, filtr, zbiornik i chłodnica zapewniają ciągłe smarowanie części ruchomych silnika.",
     category: "internal",
+    image: lubricationSystemImg,
   },
   {
     id: 70,
@@ -513,6 +654,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Cooling System",
     description: "W Cessnach powietrzny - kanały w osłonie kierują przepływ powietrza wokół cylindrów silnika.",
     category: "internal",
+    image: coolingSystemImg,
   },
   {
     id: 71,
@@ -520,6 +662,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Magnetos",
     description: "Dwa niezależne systemy zapłonowe zapewniające redundancję i bezpieczeństwo.",
     category: "internal",
+    image: magnetosImg,
   },
   {
     id: 72,
@@ -527,6 +670,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Spark Plugs",
     description: "Zapalają mieszankę paliwowo-powietrzną w cylindrach silnika.",
     category: "internal",
+    image: sparkPlugsImg,
   },
   {
     id: 73,
@@ -534,6 +678,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Ignition Switch",
     description: "Pozycje: OFF (wyłączone), L (lewy magnetos), R (prawy magnetos), BOTH (oba), START (rozruch).",
     category: "internal",
+    image: ignitionSwitchImg,
   },
   {
     id: 74,
@@ -541,6 +686,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Seatbelts",
     description: "Zabezpieczają pilotów i pasażerów podczas lotu i lądowania.",
     category: "internal",
+    image: seatbeltsImg,
   },
   {
     id: 75,
@@ -548,6 +694,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "Fire Extinguisher",
     description: "Przenośna gaśnica do gaszenia pożarów w kabinie.",
     category: "internal",
+    image: fireExtinguisherImg,
   },
   {
     id: 76,
@@ -555,6 +702,7 @@ const aircraftParts: AircraftPart[] = [
     nameEn: "ELT",
     description: "Emergency Locator Transmitter - automatycznie wysyła sygnał ratunkowy po wypadku.",
     category: "internal",
+    image: eltImg,
   },
 ];
 
