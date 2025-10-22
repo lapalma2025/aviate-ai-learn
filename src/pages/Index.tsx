@@ -46,7 +46,7 @@ const Index = () => {
             >
               Przygotuj Się do Egzaminu
               <span className="block text-primary mt-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                PPLA z Nami!
+                PPLA!
               </span>
             </h1>
 
