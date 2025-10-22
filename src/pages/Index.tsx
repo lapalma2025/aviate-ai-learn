@@ -60,7 +60,7 @@ const Index = () => {
             </p>
 
             <div
-              className={`flex flex-col sm:flex-row gap-4 justify-center pt-4 transition-all duration-1000 delay-500 ${
+              className={`flex flex-col sm:flex-row gap-4 justify-center pt-4 mt-[15px] transition-all duration-1000 delay-500 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
             >
