@@ -87,7 +87,7 @@ const Index = () => {
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/30 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/30 backdrop-blur-sm mb-[15px]">
                 <Rocket className="h-4 w-4 text-accent" />
                 <span className="text-sm font-medium">Wkrótce: ATPL i pełna platforma szkoleniowa!</span>
               </div>
