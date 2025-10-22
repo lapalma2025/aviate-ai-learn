@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plane, ArrowLeft } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import Checkout from "./Checkout";
 
 const Auth = () => {
@@ -15,6 +16,8 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedMarketing, setAcceptedMarketing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -34,6 +37,15 @@ const Auth = () => {
       toast({
         title: "Błąd",
         description: "Hasło musi mieć minimum 6 znaków",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast({
+        title: "Błąd",
+        description: "Musisz zaakceptować regulamin i politykę prywatności",
         variant: "destructive",
       });
       return;
@@ -178,6 +190,39 @@ const Auth = () => {
                       minLength={6}
                     />
                   </div>
+                  
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        id="terms"
+                        checked={acceptedTerms}
+                        onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                      />
+                      <label htmlFor="terms" className="text-sm leading-tight cursor-pointer">
+                        Akceptuję{' '}
+                        <Link to="/terms" className="text-primary hover:underline" target="_blank">
+                          regulamin
+                        </Link>
+                        {' '}i{' '}
+                        <Link to="/privacy" className="text-primary hover:underline" target="_blank">
+                          politykę prywatności
+                        </Link>
+                        {' '}(wymagane)
+                      </label>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        id="marketing"
+                        checked={acceptedMarketing}
+                        onCheckedChange={(checked) => setAcceptedMarketing(checked as boolean)}
+                      />
+                      <label htmlFor="marketing" className="text-sm leading-tight cursor-pointer text-muted-foreground">
+                        Wyrażam zgodę na przetwarzanie moich danych w celach marketingowych (opcjonalne)
+                      </label>
+                    </div>
+                  </div>
+
                   <Button type="submit" className="w-full">
                     Przejdź do płatności
                   </Button>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plane, BookOpen, Brain, Trophy, CheckCircle, Sparkles, Rocket, Award } from "lucide-react";
 import heroImage from "@/assets/hero-aviation.jpg";
 import { useEffect, useState } from "react";
+import { Footer } from "@/components/Footer";
 
 const Index = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -255,6 +256,8 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };

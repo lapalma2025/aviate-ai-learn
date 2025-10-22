@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { Footer } from "@/components/Footer";
 
 const DashboardLayout = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -68,6 +69,7 @@ const DashboardLayout = () => {
           <main className="flex-1 p-6">
             <Outlet />
           </main>
+          <Footer />
         </div>
       </div>
     </SidebarProvider>
