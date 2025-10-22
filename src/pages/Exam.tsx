@@ -318,12 +318,12 @@ const Exam = () => {
               <Button
                 key={key}
                 variant={isSelected ? "default" : "outline"}
-                className="w-full justify-start text-left h-auto py-4 px-4"
+                className="w-full justify-start text-left h-auto py-4 px-4 whitespace-normal"
                 onClick={() => handleAnswer(key)}
               >
-                <span className="font-bold mr-3">{key}.</span>
-                <span className="flex-1">{answerText}</span>
-                {isSelected && <CheckCircle className="h-5 w-5 ml-2" />}
+                <span className="font-bold mr-3 flex-shrink-0">{key}.</span>
+                <span className="flex-1 break-words">{answerText}</span>
+                {isSelected && <CheckCircle className="h-5 w-5 ml-2 flex-shrink-0" />}
               </Button>
             );
           })}
