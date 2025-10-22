@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
 import * as THREE from "three";
 
 interface Aircraft3DViewerProps {
@@ -34,404 +34,139 @@ const AircraftPartMesh = ({ partId, position, geometry, isSelected, onClick }: A
       }}
     >
       <meshStandardMaterial
-        color={isSelected ? "#3b82f6" : "#e8e8e8"}
+        color={isSelected ? "#3b82f6" : "#8b9cb6"}
         emissive={isSelected ? "#3b82f6" : "#000000"}
         emissiveIntensity={isSelected ? 0.5 : 0}
-        metalness={0.3}
-        roughness={0.6}
       />
     </mesh>
   );
 };
 
 const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) => {
-  const geometries = useMemo(() => {
-    // Kadłub główny (Fuselage) - bardziej realistyczny kształt
-    const fuselageGeometry = new THREE.CylinderGeometry(0.35, 0.28, 5, 32);
-    fuselageGeometry.rotateZ(Math.PI / 2);
-    
-    // Dziób (Nose)
-    const noseGeometry = new THREE.SphereGeometry(0.35, 32, 32, 0, Math.PI);
-    noseGeometry.rotateY(-Math.PI / 2);
-    
-    // Ogon (Tail cone)
-    const tailGeometry = new THREE.ConeGeometry(0.28, 0.8, 32);
-    tailGeometry.rotateZ(-Math.PI / 2);
+  // Kadłub (Fuselage) - id: 8
+  const fuselageGeometry = new THREE.CylinderGeometry(0.3, 0.3, 4, 32);
+  fuselageGeometry.rotateZ(Math.PI / 2);
 
-    // Kabina (Cockpit) - przezroczysta część
-    const cockpitGeometry = new THREE.SphereGeometry(0.38, 32, 32, 0, Math.PI * 0.8, 0, Math.PI * 0.5);
-    cockpitGeometry.rotateY(-Math.PI / 2);
-    cockpitGeometry.rotateZ(-Math.PI * 0.15);
+  // Skrzydła (Wings) - id: 5
+  const wingGeometry = new THREE.BoxGeometry(6, 0.1, 1);
 
-    // Skrzydła (Wings) - z profilem lotniczym
-    const wingShape = new THREE.Shape();
-    wingShape.moveTo(0, 0);
-    wingShape.lineTo(3, 0);
-    wingShape.quadraticCurveTo(3.2, 0.05, 3, 0.1);
-    wingShape.lineTo(0, 0.1);
-    wingShape.quadraticCurveTo(-0.1, 0.05, 0, 0);
-    
-    const extrudeSettings = { depth: 1.5, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05 };
-    const wingGeometry = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
-    wingGeometry.rotateX(Math.PI / 2);
-    wingGeometry.rotateY(Math.PI / 2);
+  // Statecznik poziomy (Horizontal Stabilizer) - id: 9
+  const hStabilizerGeometry = new THREE.BoxGeometry(2, 0.08, 0.6);
 
-    // Osłona silnika (Engine Cowling)
-    const cowlingGeometry = new THREE.CylinderGeometry(0.4, 0.35, 1, 32);
-    cowlingGeometry.rotateZ(Math.PI / 2);
+  // Statecznik pionowy (Vertical Stabilizer) - id: 11
+  const vStabilizerGeometry = new THREE.BoxGeometry(0.08, 0.8, 0.6);
 
-    // Kołpak śmigła (Spinner)
-    const spinnerGeometry = new THREE.ConeGeometry(0.25, 0.5, 32);
-    spinnerGeometry.rotateZ(-Math.PI / 2);
+  // Śmigło (Propeller) - id: 1
+  const propellerGeometry = new THREE.BoxGeometry(0.1, 2, 0.1);
 
-    // Śmigło (Propeller) - 2 łopaty
-    const propellerGeometry = new THREE.BoxGeometry(0.12, 2.5, 0.08);
+  // Kołpak śmigła (Spinner) - id: 2
+  const spinnerGeometry = new THREE.ConeGeometry(0.2, 0.4, 32);
+  spinnerGeometry.rotateZ(-Math.PI / 2);
 
-    // Statecznik poziomy (Horizontal Stabilizer)
-    const hStabilizerGeometry = new THREE.BoxGeometry(2.5, 0.08, 1);
+  // Osłona silnika (Engine Cowling) - id: 3
+  const cowlingGeometry = new THREE.CylinderGeometry(0.35, 0.3, 0.8, 32);
+  cowlingGeometry.rotateZ(Math.PI / 2);
 
-    // Statecznik pionowy (Vertical Stabilizer)
-    const vStabilizerGeometry = new THREE.BoxGeometry(0.08, 1.2, 0.9);
+  // Lotki (Ailerons) - id: 6 (lewy)
+  const aileronGeometry = new THREE.BoxGeometry(1.2, 0.12, 0.3);
 
-    // Lotki (Ailerons)
-    const aileronGeometry = new THREE.BoxGeometry(1.5, 0.12, 0.35);
+  // Klapy (Flaps) - id: 7 (lewa)
+  const flapGeometry = new THREE.BoxGeometry(1, 0.12, 0.25);
 
-    // Klapy (Flaps)
-    const flapGeometry = new THREE.BoxGeometry(1.2, 0.12, 0.3);
+  // Ster wysokości (Elevator) - id: 10
+  const elevatorGeometry = new THREE.BoxGeometry(1.8, 0.1, 0.25);
 
-    // Ster wysokości (Elevator)
-    const elevatorGeometry = new THREE.BoxGeometry(2.2, 0.1, 0.3);
+  // Ster kierunku (Rudder) - id: 12
+  const rudderGeometry = new THREE.BoxGeometry(0.1, 0.6, 0.25);
 
-    // Ster kierunku (Rudder)
-    const rudderGeometry = new THREE.BoxGeometry(0.1, 0.9, 0.35);
+  // Podwozie przednie (Nose Wheel) - id: 14
+  const noseWheelGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 16);
 
-    // Koła (Wheels)
-    const noseWheelGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.12, 24);
-    const mainWheelGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.15, 24);
+  // Podwozie główne (Main Wheels) - id: 15 (lewe)
+  const mainWheelGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16);
 
-    // Wsporniki (Struts)
-    const strutGeometry = new THREE.CylinderGeometry(0.04, 0.04, 1.5, 12);
-
-    // Podwozie (Landing gear struts)
-    const gearStrutGeometry = new THREE.CylinderGeometry(0.06, 0.04, 0.8, 12);
-
-    return {
-      fuselage: fuselageGeometry,
-      nose: noseGeometry,
-      tail: tailGeometry,
-      cockpit: cockpitGeometry,
-      wing: wingGeometry,
-      cowling: cowlingGeometry,
-      spinner: spinnerGeometry,
-      propeller: propellerGeometry,
-      hStabilizer: hStabilizerGeometry,
-      vStabilizer: vStabilizerGeometry,
-      aileron: aileronGeometry,
-      flap: flapGeometry,
-      elevator: elevatorGeometry,
-      rudder: rudderGeometry,
-      noseWheel: noseWheelGeometry,
-      mainWheel: mainWheelGeometry,
-      strut: strutGeometry,
-      gearStrut: gearStrutGeometry,
-    };
-  }, []);
+  // Wsporniki skrzydła (Wing Struts) - id: 16 (lewy)
+  const strutGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8);
 
   return (
     <group>
-      {/* Kadłub główny */}
+      {/* Kadłub */}
       <AircraftPartMesh
         partId={8}
         position={[0, 0, 0]}
-        geometry={geometries.fuselage}
+        geometry={fuselageGeometry}
         isSelected={selectedPartId === 8}
         onClick={onPartClick}
       />
 
-      {/* Dziób samolotu (część kadłuba) */}
-      <mesh
-        position={[2.5, 0, 0]}
-        geometry={geometries.nose}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(8);
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 8 ? "#3b82f6" : "#e8e8e8"}
-          emissive={selectedPartId === 8 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 8 ? 0.5 : 0}
-          metalness={0.3}
-          roughness={0.6}
-        />
-      </mesh>
-
-      {/* Ogon samolotu (część kadłuba) */}
-      <mesh
-        position={[-2.9, 0, 0]}
-        geometry={geometries.tail}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(8);
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 8 ? "#3b82f6" : "#e8e8e8"}
-          emissive={selectedPartId === 8 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 8 ? 0.5 : 0}
-        />
-      </mesh>
-
-      {/* Przednia szyba (Cockpit) */}
-      <mesh
-        position={[1.5, 0.15, 0]}
-        geometry={geometries.cockpit}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(4);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshPhysicalMaterial
-          color={selectedPartId === 4 ? "#3b82f6" : "#87ceeb"}
-          transparent
-          opacity={0.3}
-          metalness={0.1}
-          roughness={0.1}
-          emissive={selectedPartId === 4 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 4 ? 0.3 : 0}
-        />
-      </mesh>
-
       {/* Osłona silnika */}
       <AircraftPartMesh
         partId={3}
-        position={[2.8, 0, 0]}
-        geometry={geometries.cowling}
+        position={[2.2, 0, 0]}
+        geometry={cowlingGeometry}
         isSelected={selectedPartId === 3}
         onClick={onPartClick}
       />
 
       {/* Kołpak śmigła */}
-      <mesh
-        position={[3.5, 0, 0]}
-        geometry={geometries.spinner}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(2);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 2 ? "#3b82f6" : "#2c3e50"}
-          emissive={selectedPartId === 2 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 2 ? 0.5 : 0}
-          metalness={0.7}
-          roughness={0.3}
-        />
-      </mesh>
+      <AircraftPartMesh
+        partId={2}
+        position={[2.8, 0, 0]}
+        geometry={spinnerGeometry}
+        isSelected={selectedPartId === 2}
+        onClick={onPartClick}
+      />
 
-      {/* Śmigło - łopata 1 */}
+      {/* Śmigło */}
       <AircraftPartMesh
         partId={1}
-        position={[3.8, 0, 0]}
-        geometry={geometries.propeller}
+        position={[3, 0, 0]}
+        geometry={propellerGeometry}
         isSelected={selectedPartId === 1}
         onClick={onPartClick}
       />
 
-      {/* Śmigło - łopata 2 (obrócona o 90°) */}
-      <mesh
-        position={[3.8, 0, 0]}
-        geometry={geometries.propeller}
-        rotation={[0, 0, Math.PI / 2]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(1);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 1 ? "#3b82f6" : "#34495e"}
-          emissive={selectedPartId === 1 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 1 ? 0.5 : 0}
-          metalness={0.5}
-          roughness={0.4}
-        />
-      </mesh>
-
-      {/* Skrzydło lewe */}
-      <mesh
-        position={[0.3, 0.1, -3]}
-        geometry={geometries.wing}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(5);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 5 ? "#3b82f6" : "#e74c3c"}
-          emissive={selectedPartId === 5 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 5 ? 0.5 : 0}
-          metalness={0.4}
-          roughness={0.5}
-        />
-      </mesh>
-
-      {/* Skrzydło prawe */}
-      <mesh
-        position={[0.3, 0.1, 3]}
-        geometry={geometries.wing}
-        rotation={[0, 0, Math.PI]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(5);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 5 ? "#3b82f6" : "#e74c3c"}
-          emissive={selectedPartId === 5 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 5 ? 0.5 : 0}
-          metalness={0.4}
-          roughness={0.5}
-        />
-      </mesh>
+      {/* Skrzydła */}
+      <AircraftPartMesh
+        partId={5}
+        position={[0, 0, 0]}
+        geometry={wingGeometry}
+        isSelected={selectedPartId === 5}
+        onClick={onPartClick}
+      />
 
       {/* Lotka lewa */}
       <AircraftPartMesh
         partId={6}
-        position={[-1.2, 0.1, -4.2]}
-        geometry={geometries.aileron}
+        position={[-2.5, 0, 0]}
+        geometry={aileronGeometry}
         isSelected={selectedPartId === 6}
         onClick={onPartClick}
       />
 
-      {/* Lotka prawa */}
-      <mesh
-        position={[-1.2, 0.1, 4.2]}
-        geometry={geometries.aileron}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(6);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 6 ? "#3b82f6" : "#8b9cb6"}
-          emissive={selectedPartId === 6 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 6 ? 0.5 : 0}
-        />
-      </mesh>
-
       {/* Klapa lewa */}
       <AircraftPartMesh
         partId={7}
-        position={[0.5, 0, -2.2]}
-        geometry={geometries.flap}
+        position={[-1, 0, 0.1]}
+        geometry={flapGeometry}
         isSelected={selectedPartId === 7}
         onClick={onPartClick}
       />
 
-      {/* Klapa prawa */}
-      <mesh
-        position={[0.5, 0, 2.2]}
-        geometry={geometries.flap}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(7);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 7 ? "#3b82f6" : "#8b9cb6"}
-          emissive={selectedPartId === 7 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 7 ? 0.5 : 0}
-        />
-      </mesh>
-
       {/* Wspornik lewy */}
       <AircraftPartMesh
         partId={16}
-        position={[-0.8, -0.55, -2]}
-        geometry={geometries.strut}
+        position={[-1.5, -0.6, 0]}
+        geometry={strutGeometry}
         isSelected={selectedPartId === 16}
         onClick={onPartClick}
       />
 
-      {/* Wspornik prawy */}
-      <mesh
-        position={[-0.8, -0.55, 2]}
-        geometry={geometries.strut}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(16);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 16 ? "#3b82f6" : "#7f8c8d"}
-          emissive={selectedPartId === 16 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 16 ? 0.5 : 0}
-          metalness={0.8}
-          roughness={0.3}
-        />
-      </mesh>
-
       {/* Statecznik poziomy */}
       <AircraftPartMesh
         partId={9}
-        position={[-3.2, 0.1, 0]}
-        geometry={geometries.hStabilizer}
+        position={[-2, 0, 0]}
+        geometry={hStabilizerGeometry}
         isSelected={selectedPartId === 9}
         onClick={onPartClick}
       />
@@ -439,8 +174,8 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       {/* Ster wysokości */}
       <AircraftPartMesh
         partId={10}
-        position={[-4, 0.08, 0]}
-        geometry={geometries.elevator}
+        position={[-2.5, 0, 0]}
+        geometry={elevatorGeometry}
         isSelected={selectedPartId === 10}
         onClick={onPartClick}
       />
@@ -448,8 +183,8 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       {/* Statecznik pionowy */}
       <AircraftPartMesh
         partId={11}
-        position={[-3.2, 0.7, 0]}
-        geometry={geometries.vStabilizer}
+        position={[-2, 0.4, 0]}
+        geometry={vStabilizerGeometry}
         isSelected={selectedPartId === 11}
         onClick={onPartClick}
       />
@@ -457,67 +192,34 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
       {/* Ster kierunku */}
       <AircraftPartMesh
         partId={12}
-        position={[-3.9, 0.7, 0]}
-        geometry={geometries.rudder}
+        position={[-2.4, 0.4, 0]}
+        geometry={rudderGeometry}
         isSelected={selectedPartId === 12}
         onClick={onPartClick}
       />
 
-      {/* Podwozie przednie - strut */}
-      <mesh
-        position={[2, -0.5, 0]}
-        geometry={geometries.gearStrut}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(14);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 14 ? "#3b82f6" : "#7f8c8d"}
-          emissive={selectedPartId === 14 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 14 ? 0.5 : 0}
-          metalness={0.8}
-          roughness={0.2}
-        />
-      </mesh>
+      {/* Podwozie przednie */}
+      <AircraftPartMesh
+        partId={14}
+        position={[1.5, -0.8, 0]}
+        geometry={noseWheelGeometry}
+        isSelected={selectedPartId === 14}
+        onClick={onPartClick}
+      />
 
-      {/* Podwozie przednie - koło */}
-      <mesh
-        position={[2, -0.95, 0]}
-        geometry={geometries.noseWheel}
-        rotation={[0, 0, Math.PI / 2]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(14);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 14 ? "#3b82f6" : "#2c3e50"}
-          emissive={selectedPartId === 14 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 14 ? 0.5 : 0}
-          metalness={0.3}
-          roughness={0.7}
-        />
-      </mesh>
+      {/* Podwozie główne lewe */}
+      <AircraftPartMesh
+        partId={15}
+        position={[-0.5, -0.8, -0.8]}
+        geometry={mainWheelGeometry}
+        isSelected={selectedPartId === 15}
+        onClick={onPartClick}
+      />
 
-      {/* Podwozie główne lewe - strut */}
+      {/* Podwozie główne prawe */}
       <mesh
-        position={[-0.2, -0.5, -1.2]}
-        geometry={geometries.gearStrut}
+        position={[-0.5, -0.8, 0.8]}
+        geometry={mainWheelGeometry}
         onClick={(e) => {
           e.stopPropagation();
           onPartClick(15);
@@ -531,88 +233,9 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
         }}
       >
         <meshStandardMaterial
-          color={selectedPartId === 15 ? "#3b82f6" : "#7f8c8d"}
+          color={selectedPartId === 15 ? "#3b82f6" : "#8b9cb6"}
           emissive={selectedPartId === 15 ? "#3b82f6" : "#000000"}
           emissiveIntensity={selectedPartId === 15 ? 0.5 : 0}
-          metalness={0.8}
-          roughness={0.2}
-        />
-      </mesh>
-
-      {/* Podwozie główne lewe - koło */}
-      <mesh
-        position={[-0.2, -1, -1.2]}
-        geometry={geometries.mainWheel}
-        rotation={[0, 0, Math.PI / 2]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(15);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 15 ? "#3b82f6" : "#2c3e50"}
-          emissive={selectedPartId === 15 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 15 ? 0.5 : 0}
-          metalness={0.3}
-          roughness={0.7}
-        />
-      </mesh>
-
-      {/* Podwozie główne prawe - strut */}
-      <mesh
-        position={[-0.2, -0.5, 1.2]}
-        geometry={geometries.gearStrut}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(15);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 15 ? "#3b82f6" : "#7f8c8d"}
-          emissive={selectedPartId === 15 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 15 ? 0.5 : 0}
-          metalness={0.8}
-          roughness={0.2}
-        />
-      </mesh>
-
-      {/* Podwozie główne prawe - koło */}
-      <mesh
-        position={[-0.2, -1, 1.2]}
-        geometry={geometries.mainWheel}
-        rotation={[0, 0, Math.PI / 2]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPartClick(15);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
-      >
-        <meshStandardMaterial
-          color={selectedPartId === 15 ? "#3b82f6" : "#2c3e50"}
-          emissive={selectedPartId === 15 ? "#3b82f6" : "#000000"}
-          emissiveIntensity={selectedPartId === 15 ? 0.5 : 0}
-          metalness={0.3}
-          roughness={0.7}
         />
       </mesh>
     </group>
@@ -621,28 +244,22 @@ const AircraftModel = ({ selectedPartId, onPartClick }: Aircraft3DViewerProps) =
 
 export default function Aircraft3DViewer({ selectedPartId, onPartClick }: Aircraft3DViewerProps) {
   return (
-    <Canvas shadows camera={{ position: [10, 5, 10], fov: 50 }}>
+    <Canvas shadows>
+      <PerspectiveCamera makeDefault position={[8, 3, 8]} />
       <OrbitControls
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
-        minDistance={5}
-        maxDistance={25}
-        target={[0, 0, 0]}
+        minDistance={3}
+        maxDistance={20}
       />
-      
-      {/* Oświetlenie */}
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[10, 10, 5]} intensity={1.2} castShadow />
-      <directionalLight position={[-10, 5, -5]} intensity={0.5} />
-      <hemisphereLight args={["#87ceeb", "#f0e68c", 0.4]} />
-      
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+      <directionalLight position={[-10, -10, -5]} intensity={0.3} />
       <Suspense fallback={null}>
         <AircraftModel selectedPartId={selectedPartId} onPartClick={onPartClick} />
       </Suspense>
-      
-      {/* Pomocnicza siatka */}
-      <gridHelper args={[30, 30, "#cccccc", "#e0e0e0"]} position={[0, -1.2, 0]} />
+      <gridHelper args={[20, 20]} />
     </Canvas>
   );
 }

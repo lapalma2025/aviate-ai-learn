@@ -155,8 +155,6 @@ const aircraftParts: AircraftPart[] = [
   },
 ];
 
-
-
 export default function AircraftParts() {
   const [selectedPart, setSelectedPart] = useState<AircraftPart | null>(null);
 
@@ -174,7 +172,7 @@ export default function AircraftParts() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardContent className="p-0">
-            <div className="h-[600px] rounded-lg overflow-hidden bg-gradient-to-b from-sky-100 to-sky-50 dark:from-slate-900 dark:to-slate-800">
+            <div className="h-[600px] rounded-lg overflow-hidden">
               <Aircraft3DViewer
                 selectedPartId={selectedPart?.id || null}
                 onPartClick={(partId) => {
