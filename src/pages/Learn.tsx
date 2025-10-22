@@ -43,19 +43,24 @@ const Learn = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [explanation, setExplanation] = useState<string>("");
+  const [explanations, setExplanations] = useState<string[]>([]);
   const [userQuestion, setUserQuestion] = useState("");
   const [askingAI, setAskingAI] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [questionHistory, setQuestionHistory] = useState<Question[]>([]);
   const { toast } = useToast();
 
-  const loadRandomQuestion = async () => {
+  const loadRandomQuestion = async (saveToHistory = true) => {
     setLoading(true);
     setSelectedIndex(null);
     setShowResult(false);
-    setExplanation("");
+    setExplanations([]);
     setUserQuestion("");
     setAnswers([]);
+    
+    if (saveToHistory && question) {
+      setQuestionHistory(prev => [...prev, question]);
+    }
 
     try {
       let query = supabase.from("questions").select("*");
@@ -126,7 +131,7 @@ const Learn = () => {
 
     // First, check if question has a pre-generated explanation
     if (question?.explanation) {
-      setExplanation(question.explanation);
+      setExplanations([question.explanation]);
     }
 
     // Save progress
@@ -165,7 +170,7 @@ const Learn = () => {
 
       if (error) throw error;
 
-      setExplanation(data.explanation);
+      setExplanations(prev => [...prev, data.explanation]);
     } catch (error: any) {
       toast({
         title: "Błąd AI",
@@ -182,6 +187,18 @@ const Learn = () => {
       getAIExplanation(userQuestion);
       setUserQuestion("");
     }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (questionHistory.length === 0) return;
+    
+    const previousQuestion = questionHistory[questionHistory.length - 1];
+    setQuestionHistory(prev => prev.slice(0, -1));
+    setQuestion(previousQuestion);
+    setSelectedIndex(null);
+    setShowResult(false);
+    setExplanations([]);
+    setUserQuestion("");
   };
 
   useEffect(() => {
@@ -252,6 +269,12 @@ const Learn = () => {
             </Select>
           </CardContent>
         </Card>
+
+        {questionHistory.length > 0 && (
+          <Button variant="outline" onClick={handlePreviousQuestion}>
+            Poprzednie pytanie
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -316,7 +339,7 @@ const Learn = () => {
             )}
           </CardHeader>
           <CardContent className="space-y-4">
-            {askingAI && !explanation && (
+            {askingAI && (
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="flex items-center gap-3">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
@@ -325,9 +348,13 @@ const Learn = () => {
               </div>
             )}
 
-            {explanation && (
-              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <p className="text-sm whitespace-pre-wrap">{explanation}</p>
+            {explanations.length > 0 && (
+              <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2">
+                {explanations.map((explanation, index) => (
+                  <div key={index} className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <p className="text-sm whitespace-pre-wrap">{explanation}</p>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -350,7 +377,7 @@ const Learn = () => {
               </div>
             </div>
 
-            <Button onClick={loadRandomQuestion} className="w-full">
+            <Button onClick={() => loadRandomQuestion()} className="w-full">
               Następne pytanie
             </Button>
           </CardContent>
