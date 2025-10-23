@@ -12,6 +12,7 @@ import Exam from "./pages/Exam";
 import Stats from "./pages/Stats";
 import Admin from "./pages/Admin";
 import AircraftParts from "./pages/AircraftParts";
+import Notes from "./pages/Notes";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/stats" element={<Stats />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/aircraft-parts" element={<AircraftParts />} />
+            <Route path="/notes" element={<Notes />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
