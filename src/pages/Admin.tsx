@@ -218,7 +218,7 @@ const Admin = () => {
                 Import pytań z JSON
               </CardTitle>
               <CardDescription>
-                Wgraj plik JSON z pytaniami w formacie: numer, pytanie, odp1-4, correct.
+                Obsługuje dwa formaty: stary (numer, pytanie, odp1-4) oraz nowy (id, question, answers[], correct).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
