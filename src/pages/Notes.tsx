@@ -36,6 +36,7 @@ const Notes = () => {
     link: "",
     tags: "",
   });
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -195,6 +196,17 @@ const Notes = () => {
     toast({
       title: "Skopiowano",
       description: "Link został skopiowany do schowka",
+    });
+  };
+
+  const isLongContent = (text: string) => (text?.length || 0) > 280;
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
     });
   };
 
@@ -482,7 +494,17 @@ const Notes = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground line-clamp-4">{note.content}</p>
+                <p className={`text-sm text-muted-foreground ${expandedIds.has(note.id) ? "" : "line-clamp-4"}`}>{note.content}</p>
+                {isLongContent(note.content) && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 h-auto"
+                    onClick={() => toggleExpand(note.id)}
+                  >
+                    {expandedIds.has(note.id) ? "Zwiń" : "Rozwiń"}
+                  </Button>
+                )}
                 
                 {note.link && (
                   <div className="flex items-center gap-2">
