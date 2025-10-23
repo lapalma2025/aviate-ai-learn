@@ -162,25 +162,42 @@ const Admin = () => {
     setGenerating(true);
     setGenResult(null);
 
+    let totalProcessed = 0;
+    let totalFailed = 0;
+    let remaining = 1; // Start with 1 to enter the loop
+
     try {
-      const { data, error } = await supabase.functions.invoke('generate-explanations');
+      // Continue generating until no questions remain
+      while (remaining > 0) {
+        const { data, error } = await supabase.functions.invoke('generate-explanations');
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setGenResult({
-        processed: data.processed || 0,
-        failed: data.failed || 0,
-        batchSize: data.batchSize || 0,
-        remaining: data.remaining || 0,
-      });
+        totalProcessed += data.processed || 0;
+        totalFailed += data.failed || 0;
+        remaining = data.remaining || 0;
 
-      const remainingMsg = data.remaining > 0 
-        ? ` Pozostało: ${data.remaining} pytań.`
-        : ' Wszystkie gotowe!';
+        // Update UI with current progress
+        setGenResult({
+          processed: totalProcessed,
+          failed: totalFailed,
+          batchSize: data.batchSize || 0,
+          remaining: remaining,
+        });
 
+        // If there are more questions, show progress toast
+        if (remaining > 0) {
+          toast({
+            title: 'Generowanie w toku...',
+            description: `Wygenerowano ${totalProcessed} wyjaśnień. Pozostało: ${remaining} pytań.`,
+          });
+        }
+      }
+
+      // Final success toast
       toast({
-        title: data.remaining > 0 ? 'Batch wygenerowany' : 'Wszystko gotowe!',
-        description: `Wygenerowano ${data.processed} wyjaśnień.${remainingMsg}`,
+        title: 'Wszystko gotowe!',
+        description: `Wygenerowano łącznie ${totalProcessed} wyjaśnień. Wszystkie pytania mają teraz wyjaśnienia AI!`,
       });
     } catch (error: any) {
       console.error('Generation error:', error);
