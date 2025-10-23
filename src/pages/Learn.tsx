@@ -3,10 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, CheckCircle, XCircle, MessageSquare, Sparkles, Filter } from "lucide-react";
+import { BookOpen, CheckCircle, XCircle, MessageSquare, Sparkles, Filter, StickyNote } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Question {
   id: string;
@@ -48,6 +51,9 @@ const Learn = () => {
   const [askingAI, setAskingAI] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [questionHistory, setQuestionHistory] = useState<Question[]>([]);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteContent, setNoteContent] = useState("");
   const { toast } = useToast();
 
   const loadRandomQuestion = async (saveToHistory = true) => {
@@ -201,6 +207,47 @@ const Learn = () => {
     setUserQuestion("");
   };
 
+  const handleSaveNote = async () => {
+    if (!noteTitle.trim()) {
+      toast({
+        title: "Błąd",
+        description: "Tytuł notatki jest wymagany",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Musisz być zalogowany");
+
+      const { error } = await supabase.from("user_notes").insert({
+        user_id: user.id,
+        title: noteTitle,
+        content: noteContent || question?.question || "",
+        link: "",
+        tags: "",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Sukces",
+        description: "Notatka została dodana",
+      });
+
+      setNoteDialogOpen(false);
+      setNoteTitle("");
+      setNoteContent("");
+    } catch (error: any) {
+      toast({
+        title: "Błąd",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     loadRandomQuestion();
   }, [selectedCategory]);
@@ -339,25 +386,131 @@ const Learn = () => {
             )}
           </CardHeader>
           <CardContent className="space-y-4">
-            {askingAI && (
+            {explanations.length > 0 && explanations[0] && (
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold">Wyjaśnienie</span>
+                </div>
+                <p className="text-sm whitespace-pre-wrap">{explanations[0]}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex-1">
+                    <StickyNote className="h-4 w-4 mr-2" />
+                    Dodaj notatkę
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Nowa notatka</DialogTitle>
+                    <DialogDescription>Zapisz notatkę związaną z tym pytaniem</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="note-title">Tytuł</Label>
+                      <Input
+                        id="note-title"
+                        placeholder="Tytuł notatki"
+                        value={noteTitle}
+                        onChange={(e) => setNoteTitle(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="note-content">Treść</Label>
+                      <Textarea
+                        id="note-content"
+                        placeholder="Treść notatki"
+                        value={noteContent}
+                        onChange={(e) => setNoteContent(e.target.value)}
+                        rows={5}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveNote} className="flex-1">
+                      Zapisz
+                    </Button>
+                    <Button variant="outline" onClick={() => setNoteDialogOpen(false)}>
+                      Anuluj
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <Button onClick={() => loadRandomQuestion()} className="flex-1">
+                Następne pytanie
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {showResult && explanations.length > 1 && (
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              Odpowiedź AI
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {askingAI && (
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 mb-4">
                 <div className="flex items-center gap-3">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
                   <span className="font-medium text-sm">Przygotowywanie wyjaśnienia...</span>
                 </div>
               </div>
             )}
+            <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2">
+              {explanations.slice(1).map((explanation, index) => (
+                <div key={index} className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <p className="text-sm whitespace-pre-wrap">{explanation}</p>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2 mt-4">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Zapytaj AI o więcej szczegółów</span>
+              </div>
+              <div className="flex gap-2">
+                <Textarea
+                  placeholder="Np. 'Wyjaśnij to prostszym językiem' lub 'Dlaczego ta odpowiedź jest prawidłowa?'"
+                  value={userQuestion}
+                  onChange={(e) => setUserQuestion(e.target.value)}
+                  className="flex-1"
+                  rows={2}
+                />
+                <Button onClick={handleAskAI} disabled={!userQuestion.trim() || askingAI} size="sm">
+                  {askingAI ? "..." : "Zapytaj"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-            {explanations.length > 0 && (
-              <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2">
-                {explanations.map((explanation, index) => (
-                  <div key={index} className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <p className="text-sm whitespace-pre-wrap">{explanation}</p>
-                  </div>
-                ))}
+      {showResult && explanations.length <= 1 && (
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              Zapytaj AI
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {askingAI && (
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                  <span className="font-medium text-sm">Przygotowywanie wyjaśnienia...</span>
+                </div>
               </div>
             )}
-
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -376,10 +529,6 @@ const Learn = () => {
                 </Button>
               </div>
             </div>
-
-            <Button onClick={() => loadRandomQuestion()} className="w-full">
-              Następne pytanie
-            </Button>
           </CardContent>
         </Card>
       )}
