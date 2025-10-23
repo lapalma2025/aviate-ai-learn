@@ -427,26 +427,26 @@ const Notes = () => {
       )}
 
       {/* Notes Grid */}
-      <ScrollArea className="h-[calc(100vh-400px)] pr-4">
-        {filteredNotes.length === 0 ? (
-          <Card className="p-12 text-center">
-            <div className="text-muted-foreground">
-              {notes.length === 0 ? (
-                <>
-                  <Plane className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg mb-2">Brak notatek</p>
-                  <p className="text-sm">Dodaj swoją pierwszą notatkę lotniczą!</p>
-                </>
-              ) : (
-                <>
-                  <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg mb-2">Nie znaleziono notatek</p>
-                  <p className="text-sm">Spróbuj zmienić kryteria wyszukiwania</p>
-                </>
-              )}
-            </div>
-          </Card>
-        ) : (
+      {filteredNotes.length === 0 ? (
+        <Card className="p-12 text-center">
+          <div className="text-muted-foreground">
+            {notes.length === 0 ? (
+              <>
+                <Plane className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">Brak notatek</p>
+                <p className="text-sm">Dodaj swoją pierwszą notatkę lotniczą!</p>
+              </>
+            ) : (
+              <>
+                <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">Nie znaleziono notatek</p>
+                <p className="text-sm">Spróbuj zmienić kryteria wyszukiwania</p>
+              </>
+            )}
+          </div>
+        </Card>
+      ) : filteredNotes.length > 6 ? (
+        <ScrollArea className="h-[calc(100vh-400px)] pr-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredNotes.map((note) => (
               <Card key={note.id} className="hover:shadow-lg transition-shadow rounded-2xl">
@@ -545,8 +545,107 @@ const Notes = () => {
               </Card>
             ))}
           </div>
-        )}
-      </ScrollArea>
+        </ScrollArea>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filteredNotes.map((note) => (
+            <Card key={note.id} className="hover:shadow-lg transition-shadow rounded-2xl">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-lg line-clamp-2">{note.title}</CardTitle>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(note)}
+                      className="h-8 w-8"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Usunąć notatkę?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tej operacji nie można cofnąć. Notatka zostanie trwale usunięta.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(note.id)}>
+                            Usuń
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+                <CardDescription className="text-xs">
+                  {new Date(note.created_at).toLocaleDateString('pl-PL', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className={`text-sm text-muted-foreground ${expandedIds.has(note.id) ? "" : "line-clamp-4"}`}>{note.content}</p>
+                {isLongContent(note.content) && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 h-auto"
+                    onClick={() => toggleExpand(note.id)}
+                  >
+                    {expandedIds.has(note.id) ? "Zwiń" : "Rozwiń"}
+                  </Button>
+                )}
+                
+                {note.link && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 flex-1"
+                      asChild
+                    >
+                      <a href={note.link} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-3 w-3" />
+                        Otwórz link
+                      </a>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleCopyLink(note.link!)}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                
+                {note.tags && (
+                  <div className="flex flex-wrap gap-1">
+                    {note.tags.split(',').map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {tag.trim()}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
