@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Maximize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { X, Maximize2, Plane, Gauge } from "lucide-react";
 
 // External parts images
 import fuselageImg from "@/assets/parts/fuselage.png";
@@ -710,6 +711,12 @@ export default function AircraftParts() {
   const [selectedPart, setSelectedPart] = useState<AircraftPart | null>(null);
   const [hoveredPart, setHoveredPart] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [viewMode, setViewMode] = useState<"external" | "cockpit">("external");
+
+  const modelUrls = {
+    external: "https://sketchfab.com/models/3bad38124b784eafa9f16740fbb9f23e/embed?autospin=0.2&autostart=1&ui_theme=dark",
+    cockpit: "https://sketchfab.com/models/8abac371880c47869ee4063a3c33707b/embed?autospin=0.2&autostart=1&ui_theme=dark"
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -726,6 +733,26 @@ export default function AircraftParts() {
         <Card className="lg:col-span-2">
           <CardContent className="p-6">
             <div className="relative">
+              <div className="absolute top-2 left-2 z-10 flex gap-2">
+                <Button
+                  variant={viewMode === "external" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("external")}
+                  className="backdrop-blur-sm"
+                >
+                  <Plane className="h-4 w-4 mr-2" />
+                  Zewnętrzny
+                </Button>
+                <Button
+                  variant={viewMode === "cockpit" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("cockpit")}
+                  className="backdrop-blur-sm"
+                >
+                  <Gauge className="h-4 w-4 mr-2" />
+                  Kokpit
+                </Button>
+              </div>
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors"
@@ -736,7 +763,8 @@ export default function AircraftParts() {
                 isFullscreen ? "fixed inset-4 z-50" : "aspect-video"
               }`}>
                 <iframe
-                  src="https://sketchfab.com/models/3bad38124b784eafa9f16740fbb9f23e/embed?autospin=0.2&autostart=1&ui_theme=dark"
+                  key={viewMode}
+                  src={modelUrls[viewMode]}
                   className="w-full h-full"
                   allow="autoplay; fullscreen; xr-spatial-tracking"
                   allowFullScreen
