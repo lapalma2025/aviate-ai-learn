@@ -18,6 +18,7 @@ const Auth = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedMarketing, setAcceptedMarketing] = useState(false);
+  const [freeAccount, setFreeAccount] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -51,8 +52,45 @@ const Auth = () => {
       return;
     }
 
-    // Przekieruj do płatności
-    setShowCheckout(true);
+    // Jeśli konto darmowe - od razu utwórz konto
+    if (freeAccount) {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          toast({
+            title: "Sukces!",
+            description: "Twoje darmowe konto zostało utworzone. Możesz się teraz zalogować.",
+          });
+          // Przełącz na zakładkę logowania
+          setEmail("");
+          setPassword("");
+          setAcceptedTerms(false);
+          setAcceptedMarketing(false);
+          setFreeAccount(false);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Błąd rejestracji",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Konto płatne - przekieruj do płatności
+      setShowCheckout(true);
+    }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -194,6 +232,17 @@ const Auth = () => {
                   <div className="space-y-3 pt-2">
                     <div className="flex items-start space-x-3">
                       <Checkbox
+                        id="free-account"
+                        checked={freeAccount}
+                        onCheckedChange={(checked) => setFreeAccount(checked as boolean)}
+                      />
+                      <label htmlFor="free-account" className="text-sm leading-tight cursor-pointer font-medium">
+                        Chcę utworzyć darmowe konto (bez płatności)
+                      </label>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
                         id="terms"
                         checked={acceptedTerms}
                         onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
@@ -223,8 +272,17 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full">
-                    Przejdź do płatności
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Tworzenie konta...
+                      </>
+                    ) : freeAccount ? (
+                      "Utwórz darmowe konto"
+                    ) : (
+                      "Przejdź do płatności"
+                    )}
                   </Button>
                 </form>
               </TabsContent>
