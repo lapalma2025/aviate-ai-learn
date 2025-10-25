@@ -62,16 +62,14 @@ async function generateCompleteSQL() {
 -- =====================================================
 
 CREATE TYPE public.question_category AS ENUM (
+  'air_law',
+  'aircraft_general_knowledge',
+  'flight_performance_planning',
   'meteorology',
   'navigation',
-  'flight_planning',
-  'aircraft_general',
-  'flight_performance',
-  'human_performance',
   'operational_procedures',
   'principles_of_flight',
-  'communications',
-  'air_law'
+  'communications'
 );
 
 CREATE TYPE public.app_role AS ENUM ('admin', 'student');
