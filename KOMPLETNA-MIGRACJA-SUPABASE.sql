@@ -240,20 +240,26 @@ CREATE INDEX idx_user_notes_user_id ON public.user_notes(user_id);
 CREATE INDEX idx_user_roles_user_id ON public.user_roles(user_id);
 
 -- =====================================================
--- CZĘŚĆ 7: IMPORT PYTAŃ (1,332 pytania)
+-- CZĘŚĆ 7: INSTRUKCJE IMPORTU PYTAŃ
 -- =====================================================
 -- 
--- ⚠️ UWAGA: Ta sekcja jest BARDZO DUŻA
--- Zawiera 1,332 pytania egzaminacyjne
--- Wykonanie może potrwać 1-2 minuty
+-- ⚠️ WAŻNE: Pytania są importowane przez narzędzie w aplikacji
 -- 
--- Pytania są importowane w formacie:
--- INSERT INTO questions (question, answer_a, answer_b, answer_c, answer_d, 
---                        correct_answer, category, explanation)
+-- OPCJA 1 (ZALECANA): Użyj narzędzia w aplikacji
+-- 1. Wykonaj TEN skrypt (tworzy strukturę bazy)
+-- 2. Odśwież aplikację (F5)
+-- 3. Wejdź na: /data-migration
+-- 4. Kliknij "Rozpocznij Migrację"
+-- 5. Poczekaj 1-2 minuty - pytania zostaną automatycznie zaimportowane
+-- 
+-- OPCJA 2 (RĘCZNA): Wygeneruj plik SQL z pytaniami
+-- 1. Uruchom: node generate-questions-export.js
+-- 2. Zostanie utworzony plik: IMPORT-PYTAN.sql (duży ~5-10MB)
+-- 3. Otwórz ten plik w Supabase SQL Editor
+-- 4. Wykonaj go (RUN) - może potrwać 1-2 minuty
+-- 5. Gotowe! Sprawdź w Table Editor czy masz 1,332 pytania
 -- 
 -- =====================================================
-
--- Import pytań zostanie dodany w następnym kroku po potwierdzeniu struktury
 
 -- =====================================================
 -- KONIEC SKRYPTU STRUKTURY
@@ -263,7 +269,7 @@ CREATE INDEX idx_user_roles_user_id ON public.user_roles(user_id);
 -- 
 -- NASTĘPNE KROKI:
 -- 1. Sprawdź w Table Editor czy masz 6 tabel
--- 2. Daj mi znać - dodam import pytań (1,332)
+-- 2. Wybierz jedną z opcji importu pytań (powyżej)
 -- 3. Po imporcie aplikacja będzie gotowa!
 -- 
 -- =====================================================

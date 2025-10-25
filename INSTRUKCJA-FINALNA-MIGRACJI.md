@@ -25,15 +25,57 @@ W zakładce **Table Editor** powinieneś zobaczyć 6 tabel:
 
 ---
 
-## ✅ KROK 2: Konfiguracja Podstawowa
+## ✅ KROK 2: Import Pytań
 
-### 2.1 Wyłącz Email Confirmation (dla testów)
+Masz **DWA SPOSOBY** na zaimportowanie 1,332 pytań:
+
+### 🌟 SPOSÓB 1: Automatyczny (ZALECANY)
+
+To najłatwiejszy sposób - aplikacja sama pobierze i zaimportuje wszystkie pytania.
+
+1. **Odśwież aplikację**: Naciśnij **F5** w przeglądarce
+2. **Wejdź na stronę migracji**: `http://localhost:5173/data-migration`
+3. **Kliknij**: "Rozpocznij Migrację"
+4. **Poczekaj** 1-2 minuty - zobaczysz:
+   - Progress bar (postęp)
+   - Status importu
+   - Licznik: X/1332 pytania
+5. **Gotowe!** Po zakończeniu zobaczysz:
+   - ✅ Sukces: 1332 pytania
+   - ❌ Błędy: 0
+
+### 🔧 SPOSÓB 2: Ręczny (przez plik SQL)
+
+Jeśli automatyczna migracja nie działa, możesz wygenerować plik SQL.
+
+1. **Wygeneruj plik SQL**:
+   ```bash
+   node generate-questions-export.js
+   ```
+   - Zostanie utworzony plik: `IMPORT-PYTAN.sql` (~5-10 MB)
+
+2. **Wykonaj plik w Supabase**:
+   - Otwórz: `IMPORT-PYTAN.sql`
+   - Skopiuj całą zawartość (UWAGA: plik jest duży!)
+   - Wklej w Supabase SQL Editor
+   - Kliknij **RUN**
+   - Poczekaj 1-2 minuty
+
+3. **Sprawdź rezultat**:
+   - **Table Editor** → **questions**
+   - Powinieneś zobaczyć **1,332 wierszy**
+
+---
+
+## ✅ KROK 3: Konfiguracja Podstawowa
+
+### 3.1 Wyłącz Email Confirmation (dla testów)
 1. **Authentication** → **Providers** → **Email**
 2. Znajdź: **Confirm email** 
 3. **WYŁĄCZ** (toggle off)
 4. **Save**
 
-### 2.2 Dodaj Redirect URLs
+### 3.2 Dodaj Redirect URLs
 1. **Authentication** → **URL Configuration**
 2. **Redirect URLs** - dodaj:
    ```
@@ -44,46 +86,13 @@ W zakładce **Table Editor** powinieneś zobaczyć 6 tabel:
 
 ---
 
-## ✅ KROK 3: Import Pytań (Automatyczny!)
-
-### 3.1 Odśwież Aplikację
-1. Naciśnij **F5** lub **Ctrl+R** w przeglądarce
-2. Aplikacja połączy się z nową bazą danych
-
-### 3.2 Użyj Narzędzia Migracji
-1. W przeglądarce wejdź na:
-   ```
-   http://localhost:5173/data-migration
-   ```
-   (lub w podglądzie Lovable kliknij ten link)
-
-2. Zobaczysz kartę "Narzędzie Migracji Danych"
-
-3. Kliknij: **"Rozpocznij Migrację"**
-
-4. Poczekaj 1-2 minuty - zobaczysz:
-   - Progress bar (postęp)
-   - Status importu
-   - Licznik: X/1332 pytania
-
-5. Po zakończeniu zobaczysz:
-   - ✅ Sukces: 1332 pytania
-   - ❌ Błędy: 0
-
-### 3.3 Sprawdź czy działa
-1. Idź do: **Nauka** (lewe menu)
-2. Pytania powinny się załadować!
-3. Możesz zacząć odpowiadać
-
----
-
-## 🎓 KROK 4: Utwórz Konto i Nadaj Role Admin
+## 🎓 KROK 4: Utwórz Konto i Nadaj Rolę Admin
 
 ### 4.1 Zarejestruj się
 1. Idź do strony głównej lub logowania
 2. Kliknij "Zarejestruj się"
 3. Wpisz email i hasło
-4. **WAŻNE**: Email NIE wymaga potwierdzenia (bo wyłączyliśmy w kroku 2.1)
+4. **WAŻNE**: Email NIE wymaga potwierdzenia (bo wyłączyliśmy w kroku 3.1)
 5. Zostaniesz automatycznie zalogowany
 
 ### 4.2 Nadaj sobie rolę Admin (w Supabase)
@@ -116,9 +125,14 @@ W zakładce **Table Editor** powinieneś zobaczyć 6 tabel:
 
 ### Problem: "Nie widzę żadnych pytań"
 **Rozwiązanie:**
-- Sprawdź czy wykonałeś KROK 3.2 (import przez narzędzie migracji)
+- Sprawdź czy wykonałeś KROK 2 (import pytań)
 - Otwórz konsolę przeglądarki (F12) i sprawdź błędy
 - Sprawdź w Supabase Table Editor czy tabela `questions` ma 1,332 wierszy
+
+### Problem: "Automatyczna migracja nie działa"
+**Rozwiązanie:**
+- Sprawdź plik `.env` - czy ma poprawny URL i klucz do NOWEGO Supabase
+- Użyj SPOSOBU 2 (ręczny import przez plik SQL)
 
 ### Problem: "Row Level Security" error
 **Rozwiązanie:**
@@ -138,6 +152,11 @@ W zakładce **Table Editor** powinieneś zobaczyć 6 tabel:
   DELETE FROM questions;
   ```
   I spróbuj ponownie
+
+### Problem: "Nie mogę uruchomić node generate-questions-export.js"
+**Rozwiązanie:**
+- Upewnij się że masz zainstalowany Node.js
+- Użyj SPOSOBU 1 (automatyczna migracja przez aplikację)
 
 ---
 
