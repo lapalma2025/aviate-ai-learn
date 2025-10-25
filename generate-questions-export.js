@@ -11,19 +11,38 @@ async function generateSQL() {
   console.log('🚀 Pobieranie pytań z bazy danych...');
   
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/questions?select=*&order=created_at`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
+    // Pobieranie pytań z bazy (z paginacją - Supabase domyślnie ma limit 1000)
+    let allQuestions = [];
+    let offset = 0;
+    const limit = 1000;
+    let hasMore = true;
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    while (hasMore) {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/questions?select=*&order=created_at&limit=${limit}&offset=${offset}`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const questions = await response.json();
+      allQuestions = allQuestions.concat(questions);
+      
+      console.log(`   📦 Pobrano ${questions.length} pytań (razem: ${allQuestions.length})...`);
+      
+      if (questions.length < limit) {
+        hasMore = false;
+      } else {
+        offset += limit;
+      }
     }
 
-    const questions = await response.json();
-    console.log(`📊 Pobrano ${questions.length} pytań`);
+    const questions = allQuestions;
+    console.log(`📊 Pobrano łącznie ${questions.length} pytań`);
 
     // Funkcja do escapowania stringów SQL
     function escapeSql(str) {
