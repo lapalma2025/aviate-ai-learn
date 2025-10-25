@@ -1,4 +1,4 @@
-project_id = "exkmhzdwgiovivncdmtp"
+project_id = "kkfvsnifwgkzpsdmxqbt"
 
 [functions.parse-pdf]
 verify_jwt = true
