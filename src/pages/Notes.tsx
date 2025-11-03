@@ -204,6 +204,8 @@ const Notes = () => {
 
 			if (error) throw error;
 
+			setNotes((prev) => prev.filter((note) => note.id !== id));
+
 			toast({
 				title: "Sukces",
 				description: "Notatka została usunięta",
