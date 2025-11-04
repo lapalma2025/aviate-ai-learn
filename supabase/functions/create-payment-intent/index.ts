@@ -42,9 +42,14 @@ serve(async (req) => {
 		});
 	} catch (error) {
 		console.error("Error creating payment intent:", error);
-		return new Response(JSON.stringify({ error: error.message }), {
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-			status: 400,
-		});
+		return new Response(
+			JSON.stringify({
+				error: error instanceof Error ? error.message : "Unknown error",
+			}),
+			{
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+				status: 400,
+			}
+		);
 	}
 });
