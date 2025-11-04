@@ -283,6 +283,35 @@ const Learn = () => {
 		}
 	};
 
+	// Show welcome toast only on first visit
+	useEffect(() => {
+		const checkFirstVisit = async () => {
+			try {
+				const {
+					data: { user },
+				} = await supabase.auth.getUser();
+				if (!user) return;
+
+				const storageKey = `learn_first_visit_${user.id}`;
+				const hasSeenWelcome = localStorage.getItem(storageKey);
+
+				if (!hasSeenWelcome) {
+					toast({
+						title: "Witaj w trybie nauki!",
+						description:
+							"Jeżeli pojawią się jakieś błędy, prosimy o kontakt w celu ich poprawy. Z góry dziękujemy za wyrozumiałość.",
+						duration: 8000,
+					});
+					localStorage.setItem(storageKey, "true");
+				}
+			} catch (error) {
+				console.error("Error checking first visit:", error);
+			}
+		};
+
+		checkFirstVisit();
+	}, []);
+
 	useEffect(() => {
 		loadRandomQuestion();
 	}, [selectedCategory]);
