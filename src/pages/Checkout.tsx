@@ -158,6 +158,19 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 };
 
 const Checkout = (props: CheckoutProps) => {
+	if (!stripePromise) {
+		return (
+			<Card className="w-full max-w-md">
+				<CardHeader className="text-center">
+					<CardTitle className="text-2xl">Konfiguracja wymagana</CardTitle>
+					<CardDescription>
+						Skonfiguruj klucze Stripe w pliku src/lib/stripe.ts
+					</CardDescription>
+				</CardHeader>
+			</Card>
+		);
+	}
+
 	return (
 		<Elements stripe={stripePromise}>
 			<CheckoutForm {...props} />
