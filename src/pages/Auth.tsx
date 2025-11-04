@@ -4,7 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plane, ArrowLeft } from "lucide-react";
@@ -12,286 +18,297 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Checkout from "./Checkout";
 
 const Auth = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [acceptedMarketing, setAcceptedMarketing] = useState(false);
-  const [freeAccount, setFreeAccount] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [showCheckout, setShowCheckout] = useState(false);
+	const [acceptedTerms, setAcceptedTerms] = useState(false);
+	const [acceptedMarketing, setAcceptedMarketing] = useState(false);
+	const [freeAccount, setFreeAccount] = useState(false);
+	const navigate = useNavigate();
+	const { toast } = useToast();
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
-      toast({
-        title: "Błąd",
-        description: "Wypełnij wszystkie pola",
-        variant: "destructive",
-      });
-      return;
-    }
+	const handleSignUp = async (e: React.FormEvent) => {
+		e.preventDefault();
 
-    if (password.length < 6) {
-      toast({
-        title: "Błąd",
-        description: "Hasło musi mieć minimum 6 znaków",
-        variant: "destructive",
-      });
-      return;
-    }
+		if (!email || !password) {
+			toast({
+				title: "Błąd",
+				description: "Wypełnij wszystkie pola",
+				variant: "destructive",
+			});
+			return;
+		}
 
-    if (!acceptedTerms) {
-      toast({
-        title: "Błąd",
-        description: "Musisz zaakceptować regulamin i politykę prywatności",
-        variant: "destructive",
-      });
-      return;
-    }
+		if (password.length < 6) {
+			toast({
+				title: "Błąd",
+				description: "Hasło musi mieć minimum 6 znaków",
+				variant: "destructive",
+			});
+			return;
+		}
 
-    // Jeśli konto darmowe - od razu utwórz konto
-    if (freeAccount) {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-          },
-        });
+		if (!acceptedTerms) {
+			toast({
+				title: "Błąd",
+				description: "Musisz zaakceptować regulamin i politykę prywatności",
+				variant: "destructive",
+			});
+			return;
+		}
 
-        if (error) throw error;
+		// Jeśli konto darmowe - od razu utwórz konto
+		if (freeAccount) {
+			setLoading(true);
+			try {
+				const { data, error } = await supabase.auth.signUp({
+					email,
+					password,
+					options: {
+						emailRedirectTo: `${window.location.origin}/`,
+					},
+				});
 
-        if (data.user) {
-          toast({
-            title: "Sukces!",
-            description: "Twoje darmowe konto zostało utworzone. Możesz się teraz zalogować.",
-          });
-          // Przełącz na zakładkę logowania
-          setEmail("");
-          setPassword("");
-          setAcceptedTerms(false);
-          setAcceptedMarketing(false);
-          setFreeAccount(false);
-        }
-      } catch (error: any) {
-        toast({
-          title: "Błąd rejestracji",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // Konto płatne - przekieruj do płatności
-      setShowCheckout(true);
-    }
-  };
+				if (error) throw error;
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+				if (data.user) {
+					toast({
+						title: "Sukces!",
+						description:
+							"Twoje darmowe konto zostało utworzone. Możesz się teraz zalogować.",
+					});
+					// Przełącz na zakładkę logowania
+					setEmail("");
+					setPassword("");
+					setAcceptedTerms(false);
+					setAcceptedMarketing(false);
+					setFreeAccount(false);
+				}
+			} catch (error: any) {
+				toast({
+					title: "Błąd rejestracji",
+					description: error.message,
+					variant: "destructive",
+				});
+			} finally {
+				setLoading(false);
+			}
+		} else {
+			// Konto płatne - przekieruj do płatności
+			setShowCheckout(true);
+		}
+	};
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+	const handleSignIn = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
 
-      if (error) throw error;
+		try {
+			const { error } = await supabase.auth.signInWithPassword({
+				email,
+				password,
+			});
 
-      navigate("/dashboard");
-    } catch (error: any) {
-      toast({
-        title: "Błąd logowania",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+			if (error) throw error;
 
-  if (showCheckout) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100 p-4">
-        <div className="w-full max-w-md space-y-4">
-          <Button
-            variant="ghost"
-            className="mb-4"
-            onClick={() => setShowCheckout(false)}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Powrót
-          </Button>
-          <Checkout email={email} password={password} />
-        </div>
-      </div>
-    );
-  }
+			navigate("/dashboard");
+		} catch (error: any) {
+			toast({
+				title: "Błąd logowania",
+				description: error.message,
+				variant: "destructive",
+			});
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100 p-4">
-      <div className="w-full max-w-md space-y-4">
-        <Link to="/">
-          <Button variant="ghost" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Powrót na stronę główną
-          </Button>
-        </Link>
-        
-        <Card className="shadow-xl">
-          <CardHeader className="text-center space-y-2">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-primary rounded-xl">
-                <Plane className="h-8 w-8 text-primary-foreground" />
-              </div>
-            </div>
-            <CardTitle className="text-3xl font-bold">PPLA Academy</CardTitle>
-            <CardDescription>
-              Platforma e-learningowa dla przyszłych pilotów
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Logowanie</TabsTrigger>
-                <TabsTrigger value="register">Rejestracja</TabsTrigger>
-              </TabsList>
+	if (showCheckout) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100 p-4">
+				<div className="w-full max-w-md space-y-4">
+					<Button
+						variant="ghost"
+						className="mb-4"
+						onClick={() => setShowCheckout(false)}
+					>
+						<ArrowLeft className="mr-2 h-4 w-4" />
+						Powrót
+					</Button>
+					<Checkout email={email} password={password} />
+				</div>
+			</div>
+		);
+	}
 
-              <TabsContent value="login">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email-login">Email</Label>
-                    <Input
-                      id="email-login"
-                      type="email"
-                      placeholder="twoj@email.pl"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-login">Hasło</Label>
-                    <Input
-                      id="password-login"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Logowanie...
-                      </>
-                    ) : (
-                      "Zaloguj się"
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
+	return (
+		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100 p-4">
+			<div className="w-full max-w-md space-y-4">
+				<Link to="/">
+					<Button variant="ghost" className="mb-4">
+						<ArrowLeft className="mr-2 h-4 w-4" />
+						Powrót na stronę główną
+					</Button>
+				</Link>
 
-              <TabsContent value="register">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email-register">Email</Label>
-                    <Input
-                      id="email-register"
-                      type="email"
-                      placeholder="twoj@email.pl"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-register">Hasło</Label>
-                    <Input
-                      id="password-register"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-start space-x-3">
-                      <Checkbox
-                        id="free-account"
-                        checked={freeAccount}
-                        onCheckedChange={(checked) => setFreeAccount(checked as boolean)}
-                      />
-                      <label htmlFor="free-account" className="text-sm leading-tight cursor-pointer font-medium">
-                        Chcę utworzyć darmowe konto (bez płatności)
-                      </label>
-                    </div>
+				<Card className="shadow-xl">
+					<CardHeader className="text-center space-y-2">
+						<div className="flex justify-center mb-4">
+							<div className="p-3 bg-primary rounded-xl">
+								<Plane className="h-8 w-8 text-primary-foreground" />
+							</div>
+						</div>
+						<CardTitle className="text-3xl font-bold">PPLA Academy</CardTitle>
+						<CardDescription>
+							Platforma e-learningowa dla przyszłych pilotów
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<Tabs defaultValue="login" className="w-full">
+							<TabsList className="grid w-full grid-cols-2">
+								<TabsTrigger value="login">Logowanie</TabsTrigger>
+								<TabsTrigger value="register">Rejestracja</TabsTrigger>
+							</TabsList>
 
-                    <div className="flex items-start space-x-3">
-                      <Checkbox
-                        id="terms"
-                        checked={acceptedTerms}
-                        onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
-                      />
-                      <label htmlFor="terms" className="text-sm leading-tight cursor-pointer">
-                        Akceptuję{' '}
-                        <a href="/terms" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                          regulamin
-                        </a>
-                        {' '}i{' '}
-                        <a href="/privacy" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                          politykę prywatności
-                        </a>
-                        {' '}(wymagane)
-                      </label>
-                    </div>
+							<TabsContent value="login">
+								<form onSubmit={handleSignIn} className="space-y-4">
+									<div className="space-y-2">
+										<Label htmlFor="email-login">Email</Label>
+										<Input
+											id="email-login"
+											type="email"
+											placeholder="twoj@email.pl"
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+											required
+											disabled={loading}
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="password-login">Hasło</Label>
+										<Input
+											id="password-login"
+											type="password"
+											placeholder="••••••••"
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+											required
+											disabled={loading}
+										/>
+									</div>
+									<Button type="submit" className="w-full" disabled={loading}>
+										{loading ? (
+											<>
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												Logowanie...
+											</>
+										) : (
+											"Zaloguj się"
+										)}
+									</Button>
+								</form>
+							</TabsContent>
 
-                    <div className="flex items-start space-x-3">
-                      <Checkbox
-                        id="marketing"
-                        checked={acceptedMarketing}
-                        onCheckedChange={(checked) => setAcceptedMarketing(checked as boolean)}
-                      />
-                      <label htmlFor="marketing" className="text-sm leading-tight cursor-pointer text-muted-foreground">
-                        Wyrażam zgodę na przetwarzanie moich danych w celach marketingowych (opcjonalne)
-                      </label>
-                    </div>
-                  </div>
+							<TabsContent value="register">
+								<form onSubmit={handleSignUp} className="space-y-4">
+									<div className="space-y-2">
+										<Label htmlFor="email-register">Email</Label>
+										<Input
+											id="email-register"
+											type="email"
+											placeholder="twoj@email.pl"
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+											required
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="password-register">Hasło</Label>
+										<Input
+											id="password-register"
+											type="password"
+											placeholder="••••••••"
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+											required
+											minLength={6}
+										/>
+									</div>
 
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Tworzenie konta...
-                      </>
-                    ) : freeAccount ? (
-                      "Utwórz darmowe konto"
-                    ) : (
-                      "Przejdź do płatności"
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+									<div className="space-y-3 pt-2">
+										<div className="flex items-start space-x-3">
+											<Checkbox
+												id="terms"
+												checked={acceptedTerms}
+												onCheckedChange={(checked) =>
+													setAcceptedTerms(checked as boolean)
+												}
+											/>
+											<label
+												htmlFor="terms"
+												className="text-sm leading-tight cursor-pointer"
+											>
+												Akceptuję{" "}
+												<a
+													href="/terms"
+													className="text-primary hover:underline"
+													target="_blank"
+													rel="noopener noreferrer"
+												>
+													regulamin
+												</a>{" "}
+												i{" "}
+												<a
+													href="/privacy"
+													className="text-primary hover:underline"
+													target="_blank"
+													rel="noopener noreferrer"
+												>
+													politykę prywatności
+												</a>{" "}
+												(wymagane)
+											</label>
+										</div>
+
+										<div className="flex items-start space-x-3">
+											<Checkbox
+												id="marketing"
+												checked={acceptedMarketing}
+												onCheckedChange={(checked) =>
+													setAcceptedMarketing(checked as boolean)
+												}
+											/>
+											<label
+												htmlFor="marketing"
+												className="text-sm leading-tight cursor-pointer text-muted-foreground"
+											>
+												Wyrażam zgodę na przetwarzanie moich danych w celach
+												marketingowych (opcjonalne)
+											</label>
+										</div>
+									</div>
+
+									<Button type="submit" className="w-full" disabled={loading}>
+										{loading ? (
+											<>
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												Tworzenie konta...
+											</>
+										) : freeAccount ? (
+											"Utwórz darmowe konto"
+										) : (
+											"Przejdź do płatności"
+										)}
+									</Button>
+								</form>
+							</TabsContent>
+						</Tabs>
+					</CardContent>
+				</Card>
+			</div>
+		</div>
+	);
 };
 
 export default Auth;
