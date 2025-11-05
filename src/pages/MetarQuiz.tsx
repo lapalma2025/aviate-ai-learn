@@ -223,16 +223,16 @@ const MetarQuiz = () => {
       selectedAnswer: selectedOption 
     }]);
     setAnswerFeedback({show: true, correct: isCorrect});
+  };
 
-    setTimeout(() => {
-      setAnswerFeedback({show: false, correct: false});
-      
-      if (currentQuestion + 1 < questions.length) {
-        setCurrentQuestion(currentQuestion + 1);
-      } else {
-        setShowResult(true);
-      }
-    }, isCorrect ? 1500 : 4000); // Dłużej pokazuj błędną odpowiedź z wyjaśnieniem
+  const handleNextQuestion = () => {
+    setAnswerFeedback({show: false, correct: false});
+    
+    if (currentQuestion + 1 < questions.length) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      setShowResult(true);
+    }
   };
 
   const refreshQuestions = () => {
@@ -396,6 +396,13 @@ const MetarQuiz = () => {
                   </>
                 )}
               </div>
+              <Button 
+                onClick={handleNextQuestion} 
+                className="w-full" 
+                size="lg"
+              >
+                {currentQuestion + 1 < questions.length ? 'Następne pytanie' : 'Zobacz wyniki'}
+              </Button>
             </div>
           ) : (
             <>
