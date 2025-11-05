@@ -1,4 +1,4 @@
-import { Home, BookOpen, FileQuestion, BarChart3, LogOut, Upload, Plane, StickyNote } from "lucide-react";
+import { Home, BookOpen, FileQuestion, BarChart3, LogOut, Upload, Plane, StickyNote, CloudRain } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -19,6 +19,7 @@ const mainItems = [
   { title: "Strona główna", url: "/dashboard", icon: Home },
   { title: "Tryb nauki", url: "/learn", icon: BookOpen },
   { title: "Egzamin próbny", url: "/exam", icon: FileQuestion },
+  { title: "METAR Quiz", url: "/metar-quiz", icon: CloudRain },
   { title: "Statystyki", url: "/stats", icon: BarChart3 },
   { title: "Części samolotu", url: "/aircraft-parts", icon: Plane },
   { title: "Notatki", url: "/notes", icon: StickyNote },

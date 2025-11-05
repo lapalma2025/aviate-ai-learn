@@ -15,6 +15,7 @@ import Stats from "./pages/Stats";
 import Admin from "./pages/Admin";
 import AircraftParts from "./pages/AircraftParts";
 import Notes from "./pages/Notes";
+import MetarQuiz from "./pages/MetarQuiz";
 import DataMigration from "./pages/DataMigration";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
@@ -62,6 +63,7 @@ const App = () => {
 							<Route path="/dashboard" element={<Dashboard />} />
 							<Route path="/learn" element={<Learn />} />
 							<Route path="/exam" element={<Exam />} />
+							<Route path="/metar-quiz" element={<MetarQuiz />} />
 							<Route path="/stats" element={<Stats />} />
 							<Route path="/admin" element={<Admin />} />
 							<Route path="/aircraft-parts" element={<AircraftParts />} />
