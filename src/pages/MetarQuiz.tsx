@@ -40,7 +40,7 @@ const MetarQuiz = () => {
   const fetchMetar = async (icaoCode: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://avwx.rest/api/metar/${icaoCode}?format=json`);
+      const response = await fetch(`https://avwx.rest/avwx/rest?ids=${icaoCode}&datatype=obs&format=json`);
       if (!response.ok) throw new Error("Błąd pobierania METAR");
       const data = await response.json();
       setMetarData(data);
