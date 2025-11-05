@@ -9,10 +9,9 @@ const ICAO_AIRPORTS = ["EPWA", "EPKK", "EPGD", "EPPO", "EPWR", "EPRZ"];
 interface MetarData {
   icao: string;
   raw: string;
-  wind_speed?: { value: number };
-  visibility?: { value: number };
-  flight_rules?: string;
-  [key: string]: any;
+  wind_speed: number;
+  visibility: number;
+  flight_rules: string;
 }
 
 interface Question {
@@ -37,18 +36,61 @@ const MetarQuiz = () => {
   const [answerFeedback, setAnswerFeedback] = useState<{show: boolean, correct: boolean}>({show: false, correct: false});
   const { toast } = useToast();
 
+  const parseMetar = (metarText: string): MetarData | null => {
+    try {
+      const lines = metarText.trim().split('\n');
+      const metarLine = lines[1] || lines[0]; // METAR is usually on second line
+      
+      // Extract wind speed (format: 27010KT means 270° at 10kt)
+      const windMatch = metarLine.match(/\d{3}(\d{2,3})KT/);
+      const windSpeed = windMatch ? parseInt(windMatch[1]) : 0;
+      
+      // Extract visibility in meters (9999 = 10km+, or specific value like 5000)
+      const visMatch = metarLine.match(/\s(\d{4})\s/);
+      const visibilityMeters = visMatch ? parseInt(visMatch[1]) : 10000;
+      const visibility = visibilityMeters / 1000; // Convert to km
+      
+      // Determine flight rules based on visibility and ceiling
+      let flightRules = "VFR";
+      if (visibility < 1.5 || metarLine.includes("OVC0")) {
+        flightRules = "LIFR";
+      } else if (visibility < 5 || metarLine.match(/OVC0[0-2]/)) {
+        flightRules = "IFR";
+      } else if (visibility < 8 || metarLine.match(/BKN0[0-2]/)) {
+        flightRules = "MVFR";
+      }
+      
+      return {
+        icao: metarLine.split(' ')[0],
+        raw: metarLine,
+        wind_speed: windSpeed,
+        visibility: visibility,
+        flight_rules: flightRules,
+      };
+    } catch (error) {
+      console.error("Error parsing METAR:", error);
+      return null;
+    }
+  };
+
   const fetchMetar = async (icaoCode: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://avwx.rest/avwx/rest?ids=${icaoCode}&datatype=obs&format=json`);
+      const response = await fetch(`https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`);
       if (!response.ok) throw new Error("Błąd pobierania METAR");
-      const data = await response.json();
-      setMetarData(data);
-      generateQuestions(data);
+      const text = await response.text();
+      const parsed = parseMetar(text);
+      
+      if (!parsed) {
+        throw new Error("Nie udało się sparsować METAR");
+      }
+      
+      setMetarData(parsed);
+      generateQuestions(parsed);
     } catch (error) {
       toast({
         title: "Błąd",
-        description: "Nie udało się pobrać danych METAR",
+        description: "Nie udało się pobrać danych METAR. Spróbuj ponownie.",
         variant: "destructive",
       });
     } finally {
@@ -60,44 +102,44 @@ const MetarQuiz = () => {
     const newQuestions: Question[] = [];
 
     // Pytanie 1: Prędkość wiatru
-    const windSpeed = data.wind_speed?.value || 0;
+    const windSpeed = data.wind_speed;
     const windOptions = [
       windSpeed,
       windSpeed + 5,
-      windSpeed - 3,
+      Math.max(0, windSpeed - 3),
       windSpeed + 10,
-    ].filter(v => v >= 0).sort(() => Math.random() - 0.5);
+    ].sort(() => Math.random() - 0.5);
     
     newQuestions.push({
       question: "Jaka jest prędkość wiatru (w węzłach)?",
       correct: `${windSpeed} kt`,
-      options: windOptions.slice(0, 4).map(v => `${v} kt`),
+      options: windOptions.map(v => `${v} kt`),
     });
 
     // Pytanie 2: IFR czy VFR
-    const flightRules = data.flight_rules || "VFR";
+    const flightRules = data.flight_rules;
     const rulesOptions = ["VFR", "IFR", "MVFR", "LIFR"];
     
     newQuestions.push({
-      question: "Czy warunki są IFR czy VFR?",
+      question: "Jakie są warunki lotu?",
       correct: flightRules,
       options: rulesOptions.sort(() => Math.random() - 0.5),
     });
 
     // Pytanie 3: Widzialność
-    const visibility = data.visibility?.value || 10000;
-    const visibilityKm = (visibility / 1000).toFixed(1);
+    const visibility = data.visibility;
+    const visibilityKm = visibility.toFixed(1);
     const visOptions = [
-      parseFloat(visibilityKm),
-      parseFloat(visibilityKm) + 2,
-      parseFloat(visibilityKm) - 1.5,
-      parseFloat(visibilityKm) + 5,
-    ].filter(v => v > 0).sort(() => Math.random() - 0.5);
+      visibility,
+      visibility + 2,
+      Math.max(0.5, visibility - 1.5),
+      Math.min(10, visibility + 3),
+    ].sort(() => Math.random() - 0.5);
     
     newQuestions.push({
       question: "Jaka jest widzialność (w km)?",
       correct: `${visibilityKm} km`,
-      options: visOptions.slice(0, 4).map(v => `${v.toFixed(1)} km`),
+      options: visOptions.map(v => `${v.toFixed(1)} km`),
     });
 
     setQuestions(newQuestions);
