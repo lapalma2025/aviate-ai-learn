@@ -76,7 +76,7 @@ const MetarQuiz = () => {
   const fetchMetar = async (icaoCode: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`);
+      const response = await fetch(`https://api.allorigins.win/raw?url=https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`);
       if (!response.ok) throw new Error("Błąd pobierania METAR");
       const text = await response.text();
       const parsed = parseMetar(text);
