@@ -6,8 +6,8 @@ import {
 	LogOut,
 	Upload,
 	Plane,
-	CloudRain,
 	StickyNote,
+	CloudRain,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {

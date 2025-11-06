@@ -16,6 +16,7 @@ import Admin from "./pages/Admin";
 import MetarQuiz from "./pages/MetarQuiz";
 import AircraftParts from "./pages/AircraftParts";
 import Notes from "./pages/Notes";
+import MetarQuiz from "./pages/MetarQuiz";
 import DataMigration from "./pages/DataMigration";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
