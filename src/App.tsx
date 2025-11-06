@@ -13,6 +13,7 @@ import Learn from "./pages/Learn";
 import Exam from "./pages/Exam";
 import Stats from "./pages/Stats";
 import Admin from "./pages/Admin";
+import MetarQuiz from "./pages/MetarQuiz";
 import AircraftParts from "./pages/AircraftParts";
 import Notes from "./pages/Notes";
 import DataMigration from "./pages/DataMigration";
@@ -62,6 +63,7 @@ const App = () => {
 							<Route path="/dashboard" element={<Dashboard />} />
 							<Route path="/learn" element={<Learn />} />
 							<Route path="/exam" element={<Exam />} />
+							<Route path="/metar-quiz" element={<MetarQuiz />} />
 							<Route path="/stats" element={<Stats />} />
 							<Route path="/admin" element={<Admin />} />
 							<Route path="/aircraft-parts" element={<AircraftParts />} />
