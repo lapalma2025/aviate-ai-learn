@@ -8,9 +8,55 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plane, RefreshCw, CloudRain } from "lucide-react";
+import { Plane, RefreshCw, CloudRain, AlertCircle } from "lucide-react";
 
 const ICAO_AIRPORTS = ["EPWA", "EPKK", "EPGD", "EPPO", "EPWR", "EPRZ"];
+
+// Przykładowe dane METAR jako fallback
+const FALLBACK_METAR_DATA = [
+	{
+		icao: "EPWA",
+		raw: "EPWA 071130Z 27015KT 9999 FEW040 SCT120 08/02 Q1015 NOSIG",
+		wind_speed: 15,
+		visibility: 10,
+		flight_rules: "VFR",
+	},
+	{
+		icao: "EPKK",
+		raw: "EPKK 071130Z 28008KT 6000 BKN015 05/03 Q1014 TEMPO 4000 BR",
+		wind_speed: 8,
+		visibility: 6,
+		flight_rules: "MVFR",
+	},
+	{
+		icao: "EPGD",
+		raw: "EPGD 071130Z 30020G35KT 3000 -SN OVC008 02/00 Q1012 TEMPO 1500",
+		wind_speed: 20,
+		visibility: 3,
+		flight_rules: "IFR",
+	},
+	{
+		icao: "EPPO",
+		raw: "EPPO 071130Z 25012KT 8000 FEW025 BKN080 07/04 Q1016 NOSIG",
+		wind_speed: 12,
+		visibility: 8,
+		flight_rules: "VFR",
+	},
+	{
+		icao: "EPWR",
+		raw: "EPWR 071130Z 29005KT 1200 BR OVC004 03/02 Q1013 TEMPO 0800 FG",
+		wind_speed: 5,
+		visibility: 1.2,
+		flight_rules: "LIFR",
+	},
+	{
+		icao: "EPRZ",
+		raw: "EPRZ 071130Z 31018KT 4500 -RA BKN012 04/02 Q1011 TEMPO 2000",
+		wind_speed: 18,
+		visibility: 4.5,
+		flight_rules: "IFR",
+	},
+];
 
 interface MetarData {
 	icao: string;
@@ -41,6 +87,7 @@ const MetarQuiz = () => {
 	const [answers, setAnswers] = useState<Answer[]>([]);
 	const [showResult, setShowResult] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const [usingFallback, setUsingFallback] = useState(false);
 	const [answerFeedback, setAnswerFeedback] = useState<{
 		show: boolean;
 		correct: boolean;
@@ -84,14 +131,51 @@ const MetarQuiz = () => {
 		}
 	};
 
+	const useFallbackData = (icaoCode: string) => {
+		const fallbackData =
+			FALLBACK_METAR_DATA.find((data) => data.icao === icaoCode) ||
+			FALLBACK_METAR_DATA[
+				Math.floor(Math.random() * FALLBACK_METAR_DATA.length)
+			];
+
+		setMetarData(fallbackData);
+		setUsingFallback(true);
+		generateQuestions(fallbackData);
+
+		toast({
+			title: "Tryb offline",
+			description: "Używam przykładowych danych METAR. Quiz działa normalnie!",
+			variant: "default",
+		});
+	};
+
 	const fetchMetar = async (icaoCode: string) => {
 		setLoading(true);
+		setUsingFallback(false);
+
 		try {
+			// Ustawienie timeout dla fetch
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 sekund timeout
+
 			const response = await fetch(
-				`https://api.allorigins.win/raw?url=https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`
+				`https://api.allorigins.win/raw?url=https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
+				{ signal: controller.signal }
 			);
-			if (!response.ok) throw new Error("Błąd pobierania METAR");
+
+			clearTimeout(timeoutId);
+
+			if (!response.ok) {
+				throw new Error("Błąd pobierania METAR");
+			}
+
 			const text = await response.text();
+
+			// Sprawdzenie czy otrzymaliśmy prawidłowe dane
+			if (!text || text.length < 10 || !text.includes(icaoCode)) {
+				throw new Error("Nieprawidłowe dane METAR");
+			}
+
 			const parsed = parseMetar(text);
 
 			if (!parsed) {
@@ -99,13 +183,12 @@ const MetarQuiz = () => {
 			}
 
 			setMetarData(parsed);
+			setUsingFallback(false);
 			generateQuestions(parsed);
 		} catch (error) {
-			toast({
-				title: "Błąd",
-				description: "Nie udało się pobrać danych METAR. Spróbuj ponownie.",
-				variant: "destructive",
-			});
+			console.error("Error fetching METAR:", error);
+			// Użyj danych fallback zamiast wyświetlać błąd
+			useFallbackData(icaoCode);
 		} finally {
 			setLoading(false);
 		}
@@ -239,6 +322,87 @@ const MetarQuiz = () => {
 			explanation: `KT = knots (węzły). Jednostka prędkości używana w lotnictwie. 1 węzeł ≈ 1.852 km/h ≈ 0.514 m/s.`,
 		});
 
+		// Dodatkowe pytania dla większej różnorodności
+
+		// Pytanie 11: Kierunek wiatru
+		const windDirMatch = data.raw.match(/(\d{3})\d{2,3}KT/);
+		if (windDirMatch) {
+			const windDir = parseInt(windDirMatch[1]);
+			allQuestions.push({
+				question: "Z jakiego kierunku wieje wiatr?",
+				correct: `${windDir}°`,
+				options: [
+					`${windDir}°`,
+					`${(windDir + 90) % 360}°`,
+					`${(windDir + 180) % 360}°`,
+					`${(windDir + 270) % 360}°`,
+				].sort(() => Math.random() - 0.5),
+				explanation: `Pierwsze 3 cyfry przed prędkością wiatru oznaczają kierunek w stopniach. 270 = zachód, 090 = wschód, 180 = południe, 360 = północ.`,
+			});
+		}
+
+		// Pytanie 12: Zjawiska pogodowe
+		allQuestions.push({
+			question: "Które zjawisko pogodowe wymaga szczególnej ostrożności?",
+			correct: "Mgła (FG)",
+			options: [
+				"Mgła (FG)",
+				"Zamglenie (BR)",
+				"Deszcz (RA)",
+				"Pochmurno (OVC)",
+			].sort(() => Math.random() - 0.5),
+			explanation: `FG (fog/mgła) to najgroźniejsze zjawisko dla VFR - widzialność <1km. BR (mist) to zamglenie 1-5km. RA to deszcz, OVC to zachmurzenie całkowite.`,
+		});
+
+		// Pytanie 13: Temperatura i punkt rosy
+		const tempMatch = data.raw.match(/\s(\d{2})\/(\d{2})\s/);
+		if (tempMatch) {
+			const temp = parseInt(tempMatch[1]);
+			const dewPoint = parseInt(tempMatch[2]);
+			const spread = temp - dewPoint;
+			allQuestions.push({
+				question: "Jaka jest różnica między temperaturą a punktem rosy?",
+				correct: `${spread}°C`,
+				options: [
+					`${spread}°C`,
+					`${spread + 2}°C`,
+					`${Math.max(0, spread - 2)}°C`,
+					`${spread + 4}°C`,
+				].sort(() => Math.random() - 0.5),
+				explanation: `Mała różnica (<3°C) między temperaturą a punktem rosy zwiększa ryzyko mgły. Format: TT/DD gdzie TT to temperatura, DD to punkt rosy.`,
+			});
+		}
+
+		// Pytanie 14: Ciśnienie QNH
+		const pressureMatch = data.raw.match(/Q(\d{4})/);
+		if (pressureMatch) {
+			const pressure = parseInt(pressureMatch[1]);
+			allQuestions.push({
+				question: "Jakie jest ciśnienie QNH?",
+				correct: `${pressure} hPa`,
+				options: [
+					`${pressure} hPa`,
+					`${pressure + 5} hPa`,
+					`${pressure - 5} hPa`,
+					`${pressure + 10} hPa`,
+				].sort(() => Math.random() - 0.5),
+				explanation: `QNH to ciśnienie atmosferyczne zredukowane do poziomu morza. Standardowe ciśnienie to 1013 hPa. Format: Q#### gdzie #### to wartość w hPa.`,
+			});
+		}
+
+		// Pytanie 15: Zachmurzenie
+		allQuestions.push({
+			question: "Co oznacza skrót BKN w METAR?",
+			correct: "Zachmurzenie umiarkowane (5-7/8)",
+			options: [
+				"Zachmurzenie umiarkowane (5-7/8)",
+				"Zachmurzenie małe (1-2/8)",
+				"Zachmurzenie duże (3-4/8)",
+				"Bezchmurnie",
+			].sort(() => Math.random() - 0.5),
+			explanation: `SKC/CLR = bezchmurnie, FEW = 1-2/8, SCT = 3-4/8, BKN = 5-7/8, OVC = 8/8 (całkowite). Liczba po skrócie to wysokość w setkach stóp.`,
+		});
+
 		// Losuj 10 pytań z wszystkich
 		const selectedQuestions = allQuestions
 			.sort(() => Math.random() - 0.5)
@@ -339,6 +503,12 @@ const MetarQuiz = () => {
 						<CardDescription className="text-lg">
 							Poprawne odpowiedzi: {answers.filter((a) => a.isCorrect).length} /{" "}
 							{questions.length}
+							{usingFallback && (
+								<div className="mt-2 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+									<AlertCircle className="h-4 w-4" />
+									Tryb offline - przykładowe dane
+								</div>
+							)}
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
@@ -433,6 +603,13 @@ const MetarQuiz = () => {
 							</p>
 						</div>
 					</div>
+
+					{usingFallback && (
+						<div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2 text-sm text-yellow-800">
+							<AlertCircle className="h-4 w-4" />
+							Tryb offline - używam przykładowych danych METAR
+						</div>
+					)}
 
 					<div className="w-full bg-muted rounded-full h-2 mb-4">
 						<div

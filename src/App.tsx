@@ -13,7 +13,6 @@ import Learn from "./pages/Learn";
 import Exam from "./pages/Exam";
 import Stats from "./pages/Stats";
 import Admin from "./pages/Admin";
-import MetarQuiz from "./pages/MetarQuiz";
 import AircraftParts from "./pages/AircraftParts";
 import Notes from "./pages/Notes";
 import MetarQuiz from "./pages/MetarQuiz";
