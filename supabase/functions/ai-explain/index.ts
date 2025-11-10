@@ -6,6 +6,25 @@ const corsHeaders = {
 		"authorization, x-client-info, apikey, content-type",
 };
 
+function safeExtractText(data) {
+	try {
+		const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+		if (typeof text === "string" && text.trim().length > 0) {
+			return text.trim();
+		}
+		return "";
+	} catch {
+		return "";
+	}
+}
+
+function errorMessage(reason) {
+	return (
+		reason ||
+		"Nie udało się wygenerować odpowiedzi AI. Jeśli pytanie jest poprawne i dotyczy tematu lotnictwa, skontaktuj się z nami."
+	);
+}
+
 serve(async (req) => {
 	if (req.method === "OPTIONS") {
 		return new Response(null, { headers: corsHeaders });
@@ -20,8 +39,7 @@ serve(async (req) => {
 		}
 
 		const systemPrompt = `Jesteś ekspertem lotniczym pomagającym studentom w nauce do egzaminu PPLA (Private Pilot Licence - Aeroplane).
-Odpowiadasz po polsku, w prosty i zrozumiały sposób, jak nauczyciel.
-Twoje wyjaśnienia są konkretne i edukacyjne. 
+Odpowiadasz po polsku, używając prostego i zrozumiałego języka. Twoje wyjaśnienia są konkretne i praktyczne.
 Nie używaj formatowania markdown ani znaków specjalnych.
 Nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej jak potrafisz.`;
 
@@ -31,100 +49,87 @@ Nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej ja
 
 		const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
 
-		async function queryGemini(prompt: string): Promise<string> {
-			try {
-				const response = await fetch(
-					`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-					{
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							contents: [{ parts: [{ text: prompt }] }],
-							generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
-						}),
-					}
-				);
-
-				let data: any;
-				try {
-					data = await response.json();
-				} catch {
-					const txt = await response.text();
-					console.error("Niepoprawny JSON z Gemini:", txt);
-					return errorMessage();
-				}
-
-				// ✅ Sprawdź, czy Gemini nie zablokował prompta
-				if (data?.promptFeedback?.blockReason) {
-					console.warn("Gemini blocked the prompt:", data.promptFeedback);
-					return errorMessage(
-						"Filtry bezpieczeństwa AI zablokowały odpowiedź."
-					);
-				}
-
-				// ✅ Bezpieczne pobranie treści
-				const explanation =
-					data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
-
-				if (explanation.length > 0) {
-					return explanation;
-				}
-
-				// 🔁 Fallback – druga próba, łagodniejszy prompt
-				const fallbackPrompt = `Odpowiedz krótko i edukacyjnie, nawet jeśli pytanie jest niejasne lub niezrozumiałe. ${prompt}`;
-				const fallbackResponse = await fetch(
-					`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-					{
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							contents: [{ parts: [{ text: fallbackPrompt }] }],
-							generationConfig: { temperature: 0.5, maxOutputTokens: 512 },
-						}),
-					}
-				);
-
-				let fallbackData: any;
-				try {
-					fallbackData = await fallbackResponse.json();
-				} catch {
-					const fallbackText = await fallbackResponse.text();
-					console.error("Niepoprawny fallback JSON:", fallbackText);
-					return errorMessage(
-						"Nie udało się uzyskać odpowiedzi od AI (fallback)."
-					);
-				}
-
-				const fallbackExplanation =
-					fallbackData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
-					"";
-
-				return fallbackExplanation.length > 0
-					? fallbackExplanation
-					: errorMessage();
-			} catch (err) {
-				console.error("Błąd połączenia z Gemini:", err);
-				return errorMessage("Problem z serwerem lub połączeniem z AI.");
+		const response = await fetch(
+			`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					contents: [{ parts: [{ text: fullPrompt }] }],
+					generationConfig: {
+						temperature: 0.7,
+						maxOutputTokens: 2048,
+					},
+				}),
 			}
-		}
+		);
 
-		// 🧩 Wiadomość zwrotna dla użytkownika
-		function errorMessage(reason?: string): string {
-			return (
-				reason ||
-				"Nie udało się wygenerować odpowiedzi AI. Jeśli uważasz, że pytanie jest poprawne i dotyczy tematu lotnictwa, skontaktuj się z nami."
+		const raw = await response.text();
+		let data = {};
+
+		try {
+			data = JSON.parse(raw);
+		} catch {
+			console.error("❌ Niepoprawny JSON z Gemini:", raw);
+			return new Response(
+				JSON.stringify({
+					explanation: errorMessage(
+						"Błąd przetwarzania odpowiedzi z serwera AI."
+					),
+				}),
+				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
 			);
 		}
 
-		const explanation = await queryGemini(fullPrompt);
+		if (data?.error) {
+			console.error("⚠️ Gemini API error:", data.error);
+			return new Response(
+				JSON.stringify({
+					explanation: errorMessage(
+						"Problem z serwerem AI. Spróbuj ponownie później."
+					),
+				}),
+				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
+			);
+		}
+
+		if (data?.promptFeedback?.blockReason) {
+			console.warn("🚫 Gemini blocked prompt:", data.promptFeedback);
+			return new Response(
+				JSON.stringify({
+					explanation: errorMessage(
+						"AI zablokowało odpowiedź, ponieważ treść mogła naruszać zasady bezpieczeństwa lub nie dotyczyła tematu lotnictwa."
+					),
+				}),
+				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
+			);
+		}
+
+		console.log(
+			"🔑 Using Gemini key:",
+			GOOGLE_GEMINI_API_KEY.slice(0, 10) + "..."
+		);
+
+		const explanation = safeExtractText(data);
+		if (!explanation) {
+			console.warn("⚠️ AI zwróciło pustą odpowiedź, fallback...");
+			return new Response(
+				JSON.stringify({
+					explanation: errorMessage(
+						"AI nie wygenerowało odpowiedzi. Jeśli pytanie jest poprawne, skontaktuj się z nami."
+					),
+				}),
+				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
+			);
+		}
 
 		return new Response(JSON.stringify({ explanation }), {
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
 		});
 	} catch (error) {
-		console.error("Error:", error);
-		const msg = error instanceof Error ? error.message : String(error);
-		return new Response(JSON.stringify({ error: msg }), {
+		console.error("💥 Error:", error);
+		const message = error instanceof Error ? error.message : String(error);
+		return new Response(JSON.stringify({ error: message }), {
 			status: 500,
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
 		});

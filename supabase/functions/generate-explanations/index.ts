@@ -23,7 +23,6 @@ serve(async (req) => {
 
 		const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-		// Pobierz pytania bez wyjaśnień (do 20 na raz, by uniknąć timeoutu)
 		const { data: questions, error: fetchError } = await supabase
 			.from("questions")
 			.select("*")
@@ -31,10 +30,6 @@ serve(async (req) => {
 			.limit(20);
 
 		if (fetchError) throw fetchError;
-
-		console.log(
-			`Found ${questions?.length || 0} questions without explanations`
-		);
 
 		if (!questions || questions.length === 0) {
 			const { count } = await supabase
@@ -52,16 +47,30 @@ serve(async (req) => {
 			);
 		}
 
-		const systemPrompt = `Jesteś ekspertem lotniczym pomagającym studentom w nauce do egzaminu PPLA (Private Pilot Licence - Aeroplane). 
-Odpowiadasz po polsku, używając prostego i zrozumiałego języka. Twoje wyjaśnienia są konkretne, praktyczne i edukacyjne.
-Nigdy nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej jak potrafisz.
-Nie używaj formatowania markdown ani znaków specjalnych.`;
+		const systemPrompt = `Jesteś ekspertem lotniczym pomagającym studentom w nauce do egzaminu PPLA (Private Pilot Licence - Aeroplane).
+Odpowiadasz po polsku, używając prostego i zrozumiałego języka. 
+Nie używaj formatowania markdown ani znaków specjalnych.
+Nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej jak potrafisz.`;
 
 		let processed = 0;
 		let failed = 0;
 
-		// Pomocnicza funkcja — bezpieczne wywołanie Gemini
-		// Pomocnicza funkcja — bezpieczne wywołanie Gemini
+		// ✅ Helper do bezpiecznego odczytu tekstu z Gemini
+		function safeExtractText(obj: any): string {
+			if (
+				!obj ||
+				!obj.candidates ||
+				!Array.isArray(obj.candidates) ||
+				obj.candidates.length === 0
+			) {
+				return "";
+			}
+			const firstCandidate = obj.candidates[0];
+			if (!firstCandidate?.content?.parts?.length) return "";
+			const text = firstCandidate.content.parts[0]?.text;
+			return typeof text === "string" ? text.trim() : "";
+		}
+
 		async function queryGemini(prompt: string): Promise<string> {
 			try {
 				const response = await fetch(
@@ -76,63 +85,62 @@ Nie używaj formatowania markdown ani znaków specjalnych.`;
 					}
 				);
 
-				if (!response.ok) {
-					const text = await response.text();
-					console.error("Gemini API error:", response.status, text);
-					return "Nie udało się uzyskać odpowiedzi od AI (błąd API).";
-				}
-
-				let data: any;
+				const raw = await response.text();
+				let data: any = {};
 				try {
-					data = await response.json();
+					data = JSON.parse(raw);
 				} catch {
-					const text = await response.text();
-					console.error("Invalid JSON from Gemini:", text);
+					console.error("⚠️ Invalid JSON from Gemini:", raw);
 					return "Nie udało się uzyskać odpowiedzi od AI (błąd JSON).";
 				}
 
-				const explanation =
-					data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-					"Brak odpowiedzi od AI.";
-
-				// Jeśli Gemini nic nie zwrócił – fallback
-				if (explanation === "Brak odpowiedzi od AI.") {
-					const fallbackPrompt = `Odpowiedz krótko i edukacyjnie, nawet jeśli pytanie jest niejasne. ${prompt}`;
-					const fallback = await fetch(
-						`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-						{
-							method: "POST",
-							headers: { "Content-Type": "application/json" },
-							body: JSON.stringify({
-								contents: [{ parts: [{ text: fallbackPrompt }] }],
-								generationConfig: { temperature: 0.5, maxOutputTokens: 512 },
-							}),
-						}
-					);
-
-					let fallbackData: any;
-					try {
-						fallbackData = await fallback.json();
-					} catch {
-						const fallbackText = await fallback.text();
-						console.error("Invalid fallback JSON:", fallbackText);
-						return "Nie udało się uzyskać odpowiedzi od AI (fallback JSON).";
-					}
-
-					return (
-						fallbackData?.candidates?.[0]?.content?.parts?.[0]?.text ||
-						"Nie udało się uzyskać odpowiedzi od AI (fallback)."
-					);
+				if (data?.error) {
+					console.error("❌ Gemini API error:", data.error);
+					return "Problem z serwerem AI. Spróbuj ponownie później.";
 				}
 
-				return explanation;
+				if (data?.promptFeedback?.blockReason) {
+					console.warn("🚫 Prompt blocked:", data.promptFeedback.blockReason);
+					return "AI zablokowało odpowiedź, ponieważ treść mogła naruszać zasady bezpieczeństwa lub nie dotyczyła tematu lotnictwa. Jeśli uważasz, że pytanie jest poprawne, skontaktuj się z nami.";
+				}
+
+				const explanation = safeExtractText(data);
+				if (explanation) return explanation;
+
+				// Fallback
+				const fallbackPrompt = `Odpowiedz krótko i edukacyjnie, nawet jeśli pytanie jest niejasne. ${prompt}`;
+				const fallbackResp = await fetch(
+					`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+					{
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							contents: [{ parts: [{ text: fallbackPrompt }] }],
+							generationConfig: { temperature: 0.5, maxOutputTokens: 512 },
+						}),
+					}
+				);
+
+				const fallbackRaw = await fallbackResp.text();
+				let fallbackData: any = {};
+				try {
+					fallbackData = JSON.parse(fallbackRaw);
+				} catch {
+					console.error("⚠️ Invalid fallback JSON:", fallbackRaw);
+					return "Nie udało się uzyskać odpowiedzi od AI (fallback).";
+				}
+
+				const fallbackExplanation = safeExtractText(fallbackData);
+				return (
+					fallbackExplanation ||
+					"AI nie wygenerowało odpowiedzi. Spróbuj ponownie."
+				);
 			} catch (err) {
-				console.error("Gemini fetch error:", err);
+				console.error("🔥 Gemini fetch error:", err);
 				return "Wystąpił błąd podczas generowania odpowiedzi AI.";
 			}
 		}
 
-		// Przetwarzaj każde pytanie
 		for (const question of questions) {
 			try {
 				const correctAnswerKey = `answer_${question.correct_answer.toLowerCase()}`;
@@ -149,23 +157,22 @@ Nie używaj formatowania markdown ani znaków specjalnych.`;
 
 				if (updateError) {
 					console.error(
-						`Failed to update question ${question.id}:`,
+						`❌ Failed to update question ${question.id}:`,
 						updateError
 					);
 					failed++;
 				} else {
 					processed++;
-					console.log(`Processed ${processed}/${questions.length}`);
+					console.log(`✅ Processed ${processed}/${questions.length}`);
 				}
 
-				await new Promise((r) => setTimeout(r, 250)); // mały delay dla bezpieczeństwa
+				await new Promise((r) => setTimeout(r, 300));
 			} catch (err) {
-				console.error(`Error processing question ${question.id}:`, err);
+				console.error(`❌ Error processing question ${question.id}:`, err);
 				failed++;
 			}
 		}
 
-		// Policz, ile jeszcze brakuje
 		const { count: remainingCount } = await supabase
 			.from("questions")
 			.select("*", { count: "exact", head: true })
@@ -185,10 +192,9 @@ Nie używaj formatowania markdown ani znaków specjalnych.`;
 			{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
 		);
 	} catch (error) {
-		console.error("Error:", error);
-		const errorMessage =
-			error instanceof Error ? error.message : "Unknown error";
-		return new Response(JSON.stringify({ error: errorMessage }), {
+		console.error("💥 Error:", error);
+		const message = error instanceof Error ? error.message : String(error);
+		return new Response(JSON.stringify({ error: message }), {
 			status: 500,
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
 		});
