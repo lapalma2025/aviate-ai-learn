@@ -154,41 +154,63 @@ const MetarQuiz = () => {
 		setUsingFallback(false);
 
 		try {
-			// Ustawienie timeout dla fetch
 			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 sekund timeout
+			const timeoutId = setTimeout(() => controller.abort(), 7000); // trochę dłuższy timeout
 
-			const response = await fetch(
+			// 1️⃣ próba – amerykański NOAA przez proxy (AllOrigins)
+			let response = await fetch(
 				`https://api.allorigins.win/raw?url=https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
 				{ signal: controller.signal }
 			);
-
 			clearTimeout(timeoutId);
 
-			if (!response.ok) {
-				throw new Error("Błąd pobierania METAR");
-			}
+			if (!response.ok) throw new Error("Błąd pobierania METAR z NOAA");
+			let text = await response.text();
 
-			const text = await response.text();
-
-			// Sprawdzenie czy otrzymaliśmy prawidłowe dane
+			// jeśli dane są puste lub nie zawierają ICAO — uznaj za nieprawidłowe
 			if (!text || text.length < 10 || !text.includes(icaoCode)) {
-				throw new Error("Nieprawidłowe dane METAR");
+				throw new Error("Nieprawidłowe dane METAR z NOAA");
 			}
 
 			const parsed = parseMetar(text);
-
-			if (!parsed) {
-				throw new Error("Nie udało się sparsować METAR");
-			}
+			if (!parsed) throw new Error("Nie udało się sparsować METAR z NOAA");
 
 			setMetarData(parsed);
-			setUsingFallback(false);
 			generateQuestions(parsed);
+			console.log("✅ Dane METAR pobrane z NOAA");
 		} catch (error) {
-			console.error("Error fetching METAR:", error);
-			// Użyj danych fallback zamiast wyświetlać błąd
-			useFallbackData(icaoCode);
+			console.warn("⚠️ NOAA METAR nie działa, próba z API MET.NO", error);
+
+			try {
+				// 2️⃣ próba – europejski serwer MET.NO (Norwegian Meteorological Institute)
+				const metUrl = `https://api.met.no/weatherapi/tafmetar/1.0/metar.txt?station=${icaoCode}`;
+				const responseEU = await fetch(metUrl, {
+					headers: {
+						"User-Agent":
+							"AviateAI-METAR-Quiz/1.0 (michalzborowski@interia.pl)",
+					},
+				});
+
+				if (!responseEU.ok) throw new Error("Błąd pobierania METAR z MET.NO");
+				const textEU = await responseEU.text();
+
+				if (!textEU || textEU.length < 10 || !textEU.includes(icaoCode)) {
+					throw new Error("Nieprawidłowe dane METAR z MET.NO");
+				}
+
+				const parsedEU = parseMetar(textEU);
+				if (!parsedEU)
+					throw new Error("Nie udało się sparsować METAR z MET.NO");
+
+				setMetarData(parsedEU);
+				generateQuestions(parsedEU);
+				console.log("✅ Dane METAR pobrane z MET.NO (Europa)");
+			} catch (err2) {
+				console.warn(
+					"⚠️ MET.NO również nie odpowiada, przejście w tryb offline"
+				);
+				useFallbackData(icaoCode);
+			}
 		} finally {
 			setLoading(false);
 		}
