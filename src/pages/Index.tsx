@@ -84,12 +84,19 @@ const Index = () => {
 									: "opacity-0 translate-y-8"
 							}`}
 						>
-							<Link to="/auth">
+							<Link to="/auth" className="relative">
 								<Button
 									size="lg"
-									className="text-lg px-8 py-6 h-auto bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+									className="text-lg px-8 py-6 h-auto bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all hover:scale-105 flex flex-col gap-1"
 								>
-									Rozpocznij Teraz - 30 PLN
+									<span className="flex items-center gap-2">
+										Rozpocznij Teraz
+										<span className="line-through text-sm opacity-70">60 PLN</span>
+										<span className="font-bold">30 PLN</span>
+									</span>
+									<span className="text-xs opacity-90">
+										🎉 50% zniżki dla pierwszych 100 użytkowników
+									</span>
 								</Button>
 							</Link>
 							<Button
@@ -252,17 +259,25 @@ const Index = () => {
 						</div>
 
 						<div
-							className="bg-gradient-to-br from-primary/10 to-primary/5 p-8 md:p-12 rounded-3xl border-2 border-primary/20 shadow-xl animate-fade-in hover:shadow-2xl hover:scale-[1.02] transition-all duration-500"
+							className="bg-gradient-to-br from-primary/10 to-primary/5 p-8 md:p-12 rounded-3xl border-2 border-primary/20 shadow-xl animate-fade-in hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 relative overflow-hidden"
 							style={{ animationDelay: "0.2s" }}
 						>
+							<div className="absolute top-4 right-4 bg-accent text-accent-foreground px-4 py-2 rounded-full text-sm font-bold shadow-lg rotate-12 animate-pulse">
+								🎉 -50% PROMOCJA
+							</div>
 							<div className="text-center mb-8">
-								<div className="inline-block animate-pulse">
-									<span className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-										30 PLN
-									</span>
-									<span className="text-muted-foreground ml-2 text-lg">
-										jednorazowo
-									</span>
+								<div className="inline-block">
+									<div className="flex items-center gap-3 mb-2">
+										<span className="text-3xl md:text-4xl text-muted-foreground line-through opacity-60">
+											60 PLN
+										</span>
+										<span className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+											30 PLN
+										</span>
+									</div>
+									<p className="text-muted-foreground text-sm">
+										jednorazowo • tylko dla pierwszych 100 użytkowników
+									</p>
 								</div>
 							</div>
 

@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CreditCard, Lock } from "lucide-react";
-import { PRICE_AMOUNT, stripePromise } from "@/lib/stripe";
+import { PRICE_AMOUNT, REGULAR_PRICE, stripePromise } from "@/lib/stripe";
 import { supabase } from "@/integrations/supabase/client";
 import {
 	CardElement,
@@ -98,15 +98,26 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 
 	return (
 		<Card className="w-full max-w-md">
-			<CardHeader className="text-center">
+			<CardHeader className="text-center relative">
+				<div className="absolute top-4 right-4 bg-accent text-accent-foreground px-3 py-1 rounded-full text-xs font-bold">
+					🎉 -50%
+				</div>
 				<CardTitle className="text-2xl">Płatność</CardTitle>
 				<CardDescription>Bezpieczna płatność przez Stripe</CardDescription>
 				<div className="pt-4">
-					<div className="text-4xl font-bold text-primary">
-						{PRICE_AMOUNT} PLN
+					<div className="flex items-center justify-center gap-3 mb-2">
+						<span className="text-2xl text-muted-foreground line-through opacity-60">
+							{REGULAR_PRICE} PLN
+						</span>
+						<span className="text-4xl font-bold text-primary">
+							{PRICE_AMOUNT} PLN
+						</span>
 					</div>
-					<p className="text-sm text-muted-foreground mt-2">
+					<p className="text-sm text-muted-foreground">
 						Jednorazowa płatność za dożywotni dostęp
+					</p>
+					<p className="text-xs text-accent font-medium mt-1">
+						Promocja dla pierwszych 100 użytkowników
 					</p>
 				</div>
 			</CardHeader>
