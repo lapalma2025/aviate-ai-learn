@@ -6,7 +6,8 @@ const corsHeaders = {
 		"authorization, x-client-info, apikey, content-type",
 };
 
-function safeExtractText(data) {
+// 🔹 Bezpieczny odczyt treści z odpowiedzi Gemini
+function safeExtractText(data: any) {
 	try {
 		const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 		if (typeof text === "string" && text.trim().length > 0) {
@@ -18,13 +19,58 @@ function safeExtractText(data) {
 	}
 }
 
-function errorMessage(reason) {
+// 🔹 Domyślny komunikat błędu
+function errorMessage(reason?: string) {
 	return (
 		reason ||
 		"Nie udało się wygenerować odpowiedzi AI. Jeśli pytanie jest poprawne i dotyczy tematu lotnictwa, skontaktuj się z nami."
 	);
 }
 
+// 🔹 Funkcja z retry i timeoutem — zabezpiecza połączenie z API Gemini
+async function callGeminiWithRetry(url: string, body: any, retries = 2) {
+	for (let attempt = 0; attempt <= retries; attempt++) {
+		try {
+			const controller = new AbortController();
+			const timeout = setTimeout(() => controller.abort(), 10000); // ⏱️ timeout 10s
+
+			const res = await fetch(url, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(body),
+				signal: controller.signal,
+			});
+
+			clearTimeout(timeout);
+
+			if (!res.ok) {
+				const text = await res.text();
+				console.error(
+					`❌ Gemini error (try ${attempt + 1}):`,
+					res.status,
+					text
+				);
+				if (attempt < retries) {
+					await new Promise((r) => setTimeout(r, 1000 * (attempt + 1))); // exponential backoff
+					continue;
+				}
+				return null;
+			}
+
+			return await res.json();
+		} catch (err) {
+			console.error(`⚠️ Gemini connection error (try ${attempt + 1}):`, err);
+			if (attempt < retries) {
+				await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+				continue;
+			}
+			return null;
+		}
+	}
+	return null;
+}
+
+// 🔹 Główna funkcja serwera
 serve(async (req) => {
 	if (req.method === "OPTIONS") {
 		return new Response(null, { headers: corsHeaders });
@@ -49,33 +95,23 @@ Nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej ja
 
 		const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
 
-		const response = await fetch(
+		// 🔹 Wywołanie API Gemini z retry
+		const data = await callGeminiWithRetry(
 			`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
 			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					contents: [{ parts: [{ text: fullPrompt }] }],
-					generationConfig: {
-						temperature: 0.7,
-						maxOutputTokens: 2048,
-					},
-				}),
+				contents: [{ parts: [{ text: fullPrompt }] }],
+				generationConfig: {
+					temperature: 0.7,
+					maxOutputTokens: 2048,
+				},
 			}
 		);
 
-		const raw = await response.text();
-		let data = {};
-
-		try {
-			data = JSON.parse(raw);
-		} catch {
-			console.error("❌ Niepoprawny JSON z Gemini:", raw);
+		// 🔹 Sprawdź, czy udało się uzyskać odpowiedź
+		if (!data) {
 			return new Response(
 				JSON.stringify({
-					explanation: errorMessage(
-						"Błąd przetwarzania odpowiedzi z serwera AI."
-					),
+					explanation: errorMessage("Problem z połączeniem do serwera AI."),
 				}),
 				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
 			);
@@ -105,11 +141,6 @@ Nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej ja
 			);
 		}
 
-		console.log(
-			"🔑 Using Gemini key:",
-			GOOGLE_GEMINI_API_KEY.slice(0, 10) + "..."
-		);
-
 		const explanation = safeExtractText(data);
 		if (!explanation) {
 			console.warn("⚠️ AI zwróciło pustą odpowiedź, fallback...");
@@ -122,6 +153,10 @@ Nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej ja
 				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
 			);
 		}
+
+		console.log(
+			`✅ Odpowiedź wygenerowana poprawnie (${explanation.length} znaków)`
+		);
 
 		return new Response(JSON.stringify({ explanation }), {
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
