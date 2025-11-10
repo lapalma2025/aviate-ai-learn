@@ -6,33 +6,30 @@ const corsHeaders = {
 		"authorization, x-client-info, apikey, content-type",
 };
 
-// 🔹 Bezpieczny odczyt treści z odpowiedzi Gemini
+// ✅ Bezpieczny odczyt tekstu z odpowiedzi Gemini
 function safeExtractText(data: any) {
 	try {
 		const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-		if (typeof text === "string" && text.trim().length > 0) {
-			return text.trim();
-		}
+		if (typeof text === "string" && text.trim().length > 0) return text.trim();
 		return "";
 	} catch {
 		return "";
 	}
 }
 
-// 🔹 Domyślny komunikat błędu
 function errorMessage(reason?: string) {
 	return (
 		reason ||
-		"Nie udało się wygenerować odpowiedzi AI. Jeśli pytanie jest poprawne i dotyczy tematu lotnictwa, skontaktuj się z nami."
+		"Nie udało się wygenerować odpowiedzi AI. Jeśli pytanie jest poprawne i dotyczy tematu lotnictwa, spróbuj ponownie."
 	);
 }
 
-// 🔹 Funkcja z retry i timeoutem — zabezpiecza połączenie z API Gemini
+// 🔹 Funkcja z retry + timeout dla Gemini
 async function callGeminiWithRetry(url: string, body: any, retries = 2) {
 	for (let attempt = 0; attempt <= retries; attempt++) {
 		try {
 			const controller = new AbortController();
-			const timeout = setTimeout(() => controller.abort(), 10000); // ⏱️ timeout 10s
+			const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
 			const res = await fetch(url, {
 				method: "POST",
@@ -51,12 +48,11 @@ async function callGeminiWithRetry(url: string, body: any, retries = 2) {
 					text
 				);
 				if (attempt < retries) {
-					await new Promise((r) => setTimeout(r, 1000 * (attempt + 1))); // exponential backoff
+					await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
 					continue;
 				}
 				return null;
 			}
-
 			return await res.json();
 		} catch (err) {
 			console.error(`⚠️ Gemini connection error (try ${attempt + 1}):`, err);
@@ -70,7 +66,37 @@ async function callGeminiWithRetry(url: string, body: any, retries = 2) {
 	return null;
 }
 
-// 🔹 Główna funkcja serwera
+// 🔹 Nowy fallback — Hugging Face router (działa bez klucza API)
+async function callFreeFallback(prompt: string) {
+	try {
+		const res = await fetch(
+			"https://router.huggingface.co/hf-inference/models/Orzanna/Polish-Llama-2-7b",
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ inputs: prompt }),
+			}
+		);
+
+		if (!res.ok) {
+			const text = await res.text();
+			console.error("❌ Fallback API error:", res.status, text);
+			return null;
+		}
+
+		const data = await res.json();
+		const text =
+			data?.[0]?.generated_text || data?.generated_text || data?.text || "";
+		return typeof text === "string" && text.trim().length > 0
+			? text.trim()
+			: "";
+	} catch (err) {
+		console.error("⚠️ Fallback connection error:", err);
+		return null;
+	}
+}
+
+// 🔹 Serwer główny
 serve(async (req) => {
 	if (req.method === "OPTIONS") {
 		return new Response(null, { headers: corsHeaders });
@@ -95,8 +121,8 @@ Nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej ja
 
 		const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
 
-		// 🔹 Wywołanie API Gemini z retry
-		const data = await callGeminiWithRetry(
+		// 1️⃣ Najpierw Gemini
+		let data = await callGeminiWithRetry(
 			`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
 			{
 				contents: [{ parts: [{ text: fullPrompt }] }],
@@ -107,56 +133,27 @@ Nie odmawiaj odpowiedzi — jeśli pytanie jest niejasne, wyjaśnij najlepiej ja
 			}
 		);
 
-		// 🔹 Sprawdź, czy udało się uzyskać odpowiedź
-		if (!data) {
-			return new Response(
-				JSON.stringify({
-					explanation: errorMessage("Problem z połączeniem do serwera AI."),
-				}),
-				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
-			);
-		}
+		let explanation = data ? safeExtractText(data) : "";
 
-		if (data?.error) {
-			console.error("⚠️ Gemini API error:", data.error);
-			return new Response(
-				JSON.stringify({
-					explanation: errorMessage(
-						"Problem z serwerem AI. Spróbuj ponownie później."
-					),
-				}),
-				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
-			);
-		}
-
-		if (data?.promptFeedback?.blockReason) {
-			console.warn("🚫 Gemini blocked prompt:", data.promptFeedback);
-			return new Response(
-				JSON.stringify({
-					explanation: errorMessage(
-						"AI zablokowało odpowiedź, ponieważ treść mogła naruszać zasady bezpieczeństwa lub nie dotyczyła tematu lotnictwa."
-					),
-				}),
-				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
-			);
-		}
-
-		const explanation = safeExtractText(data);
+		// 2️⃣ Jeśli Gemini nie odpowie → fallback Hugging Face
 		if (!explanation) {
-			console.warn("⚠️ AI zwróciło pustą odpowiedź, fallback...");
+			console.warn("⚠️ Gemini zawiodło — używam polskiego fallbacka...");
+			const fallbackText = await callFreeFallback(fullPrompt);
+			if (fallbackText) explanation = fallbackText;
+		}
+
+		if (!explanation) {
 			return new Response(
 				JSON.stringify({
 					explanation: errorMessage(
-						"AI nie wygenerowało odpowiedzi. Jeśli pytanie jest poprawne, skontaktuj się z nami."
+						"AI nie odpowiedziało. Spróbuj ponownie za chwilę."
 					),
 				}),
 				{ headers: { ...corsHeaders, "Content-Type": "application/json" } }
 			);
 		}
 
-		console.log(
-			`✅ Odpowiedź wygenerowana poprawnie (${explanation.length} znaków)`
-		);
+		console.log(`✅ Odpowiedź wygenerowana (${explanation.length} znaków)`);
 
 		return new Response(JSON.stringify({ explanation }), {
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
