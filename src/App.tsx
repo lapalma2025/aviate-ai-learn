@@ -21,6 +21,9 @@ import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import CookiesPolicy from "./pages/CookiesPolicy";
+import HowToGetPPLA from "./pages/HowToGetPPLA";
+import CostsPPLA from "./pages/CostsPPLA";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { CookieBanner } from "./components/CookieBanner";
 import { useCookieConsent } from "./hooks/useCookieConsent";
 
@@ -56,12 +59,15 @@ const App = () => {
 				<Sonner />
 				{showBanner && <CookieBanner />}
 				<BrowserRouter>
+					<ScrollToTop />
 					<Routes>
 						<Route path="/" element={<Index />} />
 						<Route path="/auth" element={<Auth />} />
 						<Route path="/terms" element={<Terms />} />
 						<Route path="/privacy" element={<Privacy />} />
 						<Route path="/cookies-policy" element={<CookiesPolicy />} />
+						<Route path="/how-to-get-ppla" element={<HowToGetPPLA />} />
+						<Route path="/costs-ppla" element={<CostsPPLA />} />
 						<Route element={<DashboardLayout />}>
 							<Route path="/dashboard" element={<Dashboard />} />
 							<Route path="/learn" element={<Learn />} />
