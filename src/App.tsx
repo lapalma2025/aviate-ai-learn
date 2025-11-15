@@ -22,10 +22,13 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import CookiesPolicy from "./pages/CookiesPolicy";
 import { CookieBanner } from "./components/CookieBanner";
+import { useCookieConsent } from "./hooks/useCookieConsent";
 
 const queryClient = new QueryClient();
 
 const App = () => {
+	const { showBanner } = useCookieConsent();
+
 	// 🔍 TEST POŁĄCZENIA Z SUPABASE
 	useEffect(() => {
 		const testSupabaseConnection = async () => {
@@ -51,7 +54,7 @@ const App = () => {
 			<TooltipProvider>
 				<Toaster />
 				<Sonner />
-				<CookieBanner />
+				{showBanner && <CookieBanner />}
 				<BrowserRouter>
 					<Routes>
 						<Route path="/" element={<Index />} />
