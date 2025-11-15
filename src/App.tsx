@@ -25,6 +25,7 @@ import HowToGetPPLA from "./pages/HowToGetPPLA";
 import CostsPPLA from "./pages/CostsPPLA";
 import { CookieBanner } from "./components/CookieBanner";
 import { useCookieConsent } from "./hooks/useCookieConsent";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => {
 				<Sonner />
 				{showBanner && <CookieBanner />}
 				<BrowserRouter>
+					<ScrollToTop />
 					<Routes>
 						<Route path="/" element={<Index />} />
 						<Route path="/auth" element={<Auth />} />
