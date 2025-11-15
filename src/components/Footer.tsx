@@ -5,7 +5,7 @@ export const Footer = () => {
   return (
     <footer className="border-t border-border bg-card/50 backdrop-blur-sm mt-auto">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Plane className="h-6 w-6 text-primary" />
@@ -14,6 +14,22 @@ export const Footer = () => {
             <p className="text-sm text-muted-foreground">
               Profesjonalna platforma przygotowująca do egzaminu PPLA
             </p>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="font-semibold">Dowiedz się więcej</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/how-to-get-ppla" className="text-muted-foreground hover:text-primary transition-colors">
+                  Jak zdobyć PPL(A)?
+                </Link>
+              </li>
+              <li>
+                <Link to="/costs-ppla" className="text-muted-foreground hover:text-primary transition-colors">
+                  Koszty szkolenia PPL(A)
+                </Link>
+              </li>
+            </ul>
           </div>
 
           <div className="space-y-3">
