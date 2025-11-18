@@ -72,7 +72,11 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 						description:
 							"Twoje konto zostało utworzone. Możesz się teraz zalogować.",
 					});
-					navigate("/auth");
+					
+					// Przekierowanie po krótkiej chwili aby użytkownik zobaczył powiadomienie
+					setTimeout(() => {
+						navigate("/auth", { replace: true });
+					}, 1500);
 				}
 			}
 		} catch (error: any) {
