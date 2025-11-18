@@ -19,17 +19,20 @@ serve(async (req) => {
 
 		console.log("Creating payment intent for amount:", amount);
 
+		const params = new URLSearchParams({
+			amount: (amount * 100).toString(), // Stripe używa najmniejszej jednostki waluty (grosze)
+			currency: currency,
+		});
+		params.append("payment_method_types[]", "card");
+		params.append("payment_method_types[]", "blik");
+
 		const response = await fetch("https://api.stripe.com/v1/payment_intents", {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
 				"Content-Type": "application/x-www-form-urlencoded",
 			},
-			body: new URLSearchParams({
-				amount: (amount * 100).toString(), // Stripe używa najmniejszej jednostki waluty (grosze)
-				currency: currency,
-				"automatic_payment_methods[enabled]": "true",
-			}),
+			body: params,
 		});
 
 		const paymentIntent = await response.json();
