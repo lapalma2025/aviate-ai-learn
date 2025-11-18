@@ -8,10 +8,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CreditCard, Lock } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { PRICE_AMOUNT, REGULAR_PRICE, stripePromise } from "@/lib/stripe";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -43,14 +42,6 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 		setLoading(true);
 
 		try {
-			// Utwórz Payment Intent przez Edge Function
-			const { data: paymentIntentData, error: functionError } =
-				await supabase.functions.invoke("create-payment-intent", {
-					body: { amount: PRICE_AMOUNT, currency: "pln" },
-				});
-
-			if (functionError) throw functionError;
-
 			// Potwierdź płatność
 			const { error: stripeError, paymentIntent } =
 				await stripe.confirmPayment({
