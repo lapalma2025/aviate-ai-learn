@@ -234,7 +234,7 @@ const CostsPPLA = () => {
 
 							<div className="border-l-4 border-primary pl-4">
 								<h3 className="font-semibold text-lg mb-2">
-									✈️ Egzamin praktyczny (Skill Test)
+									✈️ Egzamin praktyczny
 								</h3>
 								<p className="text-muted-foreground">
 									<strong>Koszt:</strong> 475 PLN

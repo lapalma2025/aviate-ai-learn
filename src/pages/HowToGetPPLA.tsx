@@ -251,15 +251,15 @@ const HowToGetPPLA = () => {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-3 text-2xl">
 							<Plane className="h-8 w-8 text-primary" />
-							Egzamin praktyczny (Skill Test)
+							Egzamin praktyczny
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<p className="text-muted-foreground">
 							Po zdaniu egzaminu teoretycznego i ukończeniu wymaganej liczby
 							godzin lotu, kandydat przystępuje do{" "}
-							<strong>egzaminu praktycznego (Skill Test)</strong> z
-							certyfikowanym egzaminatorem państwowym.
+							<strong>egzaminu praktycznego</strong> z certyfikowanym
+							egzaminatorem państwowym.
 						</p>
 						<p className="text-muted-foreground">Egzamin obejmuje:</p>
 						<ul className="space-y-2 ml-6">
