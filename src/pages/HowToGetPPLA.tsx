@@ -264,13 +264,17 @@ const HowToGetPPLA = () => {
 						<p className="text-muted-foreground">Egzamin obejmuje:</p>
 						<ul className="space-y-2 ml-6">
 							<li className="text-muted-foreground">
-								✈️ <strong>Część ustną</strong> – planowanie lotu, procedury,
-								wiedza teoretyczna, obliczenia masy i wyważenia
+								💬 <strong>Część teoretyczna</strong> – przed lotem egzaminator
+								weryfikuje dokumentację m.in. (plan lotu, określanie masy oraz
+								wyważenia i osiągów, meteo, NOTAM) oraz zadaje pytania ustne o
+								procedury, przepisy i postępowanie awaryjne. Pytania mogą być
+								kontynuowane w trakcie lotu
 							</li>
 							<li className="text-muted-foreground">
 								🛫 <strong>Lot egzaminacyjny</strong> (ok. 1,5h) – starty i
-								lądowania (w tym awaryjne), manewry (głębokie zakręty,
-								przeciągnięcia), nawigacja, procedury awaryjne
+								lądowania (w tym przy bocznym wietrze, bez klap), manewry
+								(głębokie zakręty, przeciągnięcia), nawigacja, procedury
+								awaryjne
 							</li>
 						</ul>
 						<p className="text-muted-foreground mt-4">
