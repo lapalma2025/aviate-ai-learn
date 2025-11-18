@@ -106,39 +106,6 @@ const HowToGetPPLA = () => {
 							Szkolenie teoretyczne obejmuje <strong>minimum 100 godzin</strong>{" "}
 							zajęć z następujących przedmiotów:
 						</p>
-						<ul className="space-y-2 ml-6">
-							<li className="text-muted-foreground">
-								✈️ Prawo lotnicze (Air Law) - 28 pytań, 45 min
-							</li>
-							<li className="text-muted-foreground">
-								🛩️ Ogólna wiedza o statku powietrznym (Aircraft General
-								Knowledge) - 16 pytań, 30 min
-							</li>
-							<li className="text-muted-foreground">
-								📊 Osiągi i planowanie lotu (Flight Performance and Planning) -
-								20 pytań, 60 min
-							</li>
-							<li className="text-muted-foreground">
-								🧠 Człowiek – możliwości i ograniczenia (Human Performance and
-								Limitations) - 12 pytań, 30 min
-							</li>
-							<li className="text-muted-foreground">
-								🌦️ Meteorologia (Meteorology) - 12 pytań, 30 min
-							</li>
-							<li className="text-muted-foreground">
-								🧭 Nawigacja (Navigation) - 24 pytania, 60 min
-							</li>
-							<li className="text-muted-foreground">
-								📋 Procedury operacyjne (Operational Procedures) - 12 pytań, 30
-								min
-							</li>
-							<li className="text-muted-foreground">
-								🔄 Zasady lotu (Principles of Flight) - 16 pytań, 45 min
-							</li>
-							<li className="text-muted-foreground">
-								📻 Łączność (Communications) - 12 pytań, 30 min
-							</li>
-						</ul>
 						<p className="text-muted-foreground">
 							Szkolenie można odbyć w <strong>szkole lotniczej</strong> (forma
 							stacjonarna) lub samodzielnie przygotować się do egzaminu
@@ -202,35 +169,75 @@ const HowToGetPPLA = () => {
 							Egzamin teoretyczny ULC
 						</CardTitle>
 					</CardHeader>
+
 					<CardContent className="space-y-4">
 						<p className="text-muted-foreground">
 							Egzamin teoretyczny przeprowadza{" "}
-							<strong>Urząd Lotnictwa Cywilnego (ULC)</strong>. Składa się z 9
-							testów (po jednym z każdego przedmiotu), każdy zawiera w
-							zależności od przedmiotu 12-24 pytania.
+							<strong>Urząd Lotnictwa Cywilnego (ULC)</strong>. Składa się z
+							<strong> 9 testów</strong> (po jednym z każdego przedmiotu), każdy
+							zawiera 12–28 pytań w zależności od tematu.
 						</p>
+
+						{/* Sekcja: zasady egzaminu */}
 						<div className="space-y-3 ml-6">
 							<div className="flex items-start gap-3">
 								<CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
 								<div>
-									<strong>Próg zaliczenia:</strong> minimum 75% poprawnych
-									odpowiedzi w każdym teście
+									<strong>Próg zaliczenia:</strong> minimum 75% w każdym teście
 								</div>
 							</div>
 							<div className="flex items-start gap-3">
 								<CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
 								<div>
-									<strong>Czas trwania:</strong> każdy test trwa ok. 30-60 minut
+									<strong>Czas trwania:</strong> 30–60 minut w zależności od
+									przedmiotu
 								</div>
 							</div>
 							<div className="flex items-start gap-3">
 								<CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
 								<div>
-									<strong>Ważność:</strong> wyniki egzaminu są ważne przez 24
-									miesiące
+									<strong>Ważność wyników:</strong> 24 miesiące
 								</div>
 							</div>
 						</div>
+
+						{/* Oddzielenie listy przedmiotów */}
+						<div className="border-t pt-4 mt-4">
+							<h3 className="font-semibold text-lg mb-3">
+								Przedmioty egzaminacyjne:
+							</h3>
+
+							<ul className="space-y-2 ml-6">
+								<li className="text-muted-foreground">
+									✈️ Air Law – 28 pytań, 45 min
+								</li>
+								<li className="text-muted-foreground">
+									🛩️ Aircraft General Knowledge – 16 pytań, 30 min
+								</li>
+								<li className="text-muted-foreground">
+									📊 Flight Performance & Planning – 20 pytań, 60 min
+								</li>
+								<li className="text-muted-foreground">
+									🧠 Human Performance – 12 pytań, 30 min
+								</li>
+								<li className="text-muted-foreground">
+									🌦️ Meteorology – 12 pytań, 30 min
+								</li>
+								<li className="text-muted-foreground">
+									🧭 Navigation – 24 pytania, 60 min
+								</li>
+								<li className="text-muted-foreground">
+									📋 Operational Procedures – 12 pytań, 30 min
+								</li>
+								<li className="text-muted-foreground">
+									🔄 Principles of Flight – 16 pytań, 45 min
+								</li>
+								<li className="text-muted-foreground">
+									📻 Communications – 12 pytań, 30 min
+								</li>
+							</ul>
+						</div>
+
 						<p className="text-muted-foreground mt-4">
 							Przygotuj się skutecznie do egzaminu z{" "}
 							<strong>PPLA Academy</strong> – naszą platformą z prawdziwymi

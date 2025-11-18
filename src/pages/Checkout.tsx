@@ -8,14 +8,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CreditCard, Lock } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { PRICE_AMOUNT, REGULAR_PRICE, stripePromise } from "@/lib/stripe";
 import { supabase } from "@/integrations/supabase/client";
 import {
-	CardElement,
+	PaymentElement,
 	Elements,
 	useStripe,
 	useElements,
@@ -43,24 +42,16 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 		setLoading(true);
 
 		try {
-			// Utwórz Payment Intent przez Edge Function
-			const { data: paymentIntentData, error: functionError } =
-				await supabase.functions.invoke("create-payment-intent", {
-					body: { amount: PRICE_AMOUNT, currency: "pln" },
-				});
-
-			if (functionError) throw functionError;
-
-			const cardElement = elements.getElement(CardElement);
-			if (!cardElement) throw new Error("Card element not found");
-
 			// Potwierdź płatność
-			const { error: stripeError, paymentIntent } =
-				await stripe.confirmCardPayment(paymentIntentData.client_secret, {
-					payment_method: {
-						card: cardElement,
+			const { error: stripeError, paymentIntent } = await stripe.confirmPayment(
+				{
+					elements,
+					confirmParams: {
+						return_url: window.location.origin,
 					},
-				});
+					redirect: "if_required",
+				}
+			);
 
 			if (stripeError) throw stripeError;
 
@@ -80,9 +71,13 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 					toast({
 						title: "Płatność zatwierdzona!",
 						description:
-							"Twoje konto zostało utworzone. Możesz się teraz zalogować.",
+							"Twoje konto zostało utworzone. Zaloguj się aby rozpocząć naukę.",
 					});
-					navigate("/auth");
+
+					// Przekierowanie do strony głównej
+					setTimeout(() => {
+						navigate("/", { replace: true });
+					}, 1500);
 				}
 			}
 		} catch (error: any) {
@@ -124,19 +119,11 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 			<CardContent>
 				<form onSubmit={handlePayment} className="space-y-4">
 					<div className="space-y-2">
-						<Label>Dane karty</Label>
+						<Label>Metoda płatności</Label>
 						<div className="p-3 border rounded-md">
-							<CardElement
+							<PaymentElement
 								options={{
-									style: {
-										base: {
-											fontSize: "16px",
-											color: "hsl(var(--foreground))",
-											"::placeholder": {
-												color: "hsl(var(--muted-foreground))",
-											},
-										},
-									},
+									layout: "tabs",
 								}}
 							/>
 						</div>
@@ -169,6 +156,23 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 };
 
 const Checkout = (props: CheckoutProps) => {
+	const [clientSecret, setClientSecret] = useState<string | null>(null);
+
+	useEffect(() => {
+		const createPaymentIntent = async () => {
+			const { data, error } = await supabase.functions.invoke(
+				"create-payment-intent",
+				{
+					body: { amount: PRICE_AMOUNT, currency: "pln" },
+				}
+			);
+			if (!error && data?.client_secret) {
+				setClientSecret(data.client_secret);
+			}
+		};
+		createPaymentIntent();
+	}, []);
+
 	if (!stripePromise) {
 		return (
 			<Card className="w-full max-w-md">
@@ -182,8 +186,26 @@ const Checkout = (props: CheckoutProps) => {
 		);
 	}
 
+	if (!clientSecret) {
+		return (
+			<Card className="w-full max-w-md">
+				<CardContent className="flex items-center justify-center py-8">
+					<Loader2 className="h-8 w-8 animate-spin" />
+				</CardContent>
+			</Card>
+		);
+	}
+
 	return (
-		<Elements stripe={stripePromise}>
+		<Elements
+			stripe={stripePromise}
+			options={{
+				clientSecret,
+				appearance: {
+					theme: "stripe",
+				},
+			}}
+		>
 			<CheckoutForm {...props} />
 		</Elements>
 	);
