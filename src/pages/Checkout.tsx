@@ -73,7 +73,6 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 						description:
 							"Twoje konto zostało utworzone. Zaloguj się aby rozpocząć naukę.",
 					});
-
 					// Przekierowanie do strony głównej
 					setTimeout(() => {
 						navigate("/", { replace: true });
