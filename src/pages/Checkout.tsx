@@ -70,12 +70,12 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 					toast({
 						title: "Płatność zatwierdzona!",
 						description:
-							"Twoje konto zostało utworzone. Możesz się teraz zalogować.",
+							"Twoje konto zostało utworzone. Zaloguj się aby rozpocząć naukę.",
 					});
 					
-					// Przekierowanie po krótkiej chwili aby użytkownik zobaczył powiadomienie
+					// Przekierowanie do strony głównej
 					setTimeout(() => {
-						navigate("/auth", { replace: true });
+						navigate("/", { replace: true });
 					}, 1500);
 				}
 			}
