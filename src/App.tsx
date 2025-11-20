@@ -25,12 +25,19 @@ import HowToGetPPLA from "./pages/HowToGetPPLA";
 import CostsPPLA from "./pages/CostsPPLA";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { CookieBanner } from "./components/CookieBanner";
-import { useCookieConsent } from "./hooks/useCookieConsent";
+import {
+	useCookieConsent,
+	initGoogleConsentMode,
+} from "./hooks/useCookieConsent";
 
 const queryClient = new QueryClient();
 
 const App = () => {
 	const { showBanner } = useCookieConsent();
+
+	useEffect(() => {
+		initGoogleConsentMode();
+	}, []);
 
 	// 🔍 TEST POŁĄCZENIA Z SUPABASE
 	useEffect(() => {
