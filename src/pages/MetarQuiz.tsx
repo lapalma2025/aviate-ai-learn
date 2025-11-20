@@ -153,67 +153,118 @@ const MetarQuiz = () => {
 		setLoading(true);
 		setUsingFallback(false);
 
-		try {
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 7000); // trochę dłuższy timeout
+		// Lista API do sprawdzenia po kolei
+		const metarAPIs = [
+			{
+				name: "AVWX (darmowe, bez klucza)",
+				url: `https://avwx.rest/api/metar/${icaoCode}?options=info,translate`,
+				headers: {},
+				parse: async (response: Response) => {
+					const json = await response.json();
+					if (json.raw) {
+						return parseMetar(json.raw);
+					}
+					return null;
+				},
+			},
+			{
+				name: "AWC Aviation Weather (oficjalne FAA)",
+				url: `https://aviationweather.gov/api/data/metar?ids=${icaoCode}&format=raw`,
+				headers: {},
+				parse: async (response: Response) => {
+					const text = await response.text();
+					if (text && text.length > 10 && text.includes(icaoCode)) {
+						return parseMetar(text);
+					}
+					return null;
+				},
+			},
+			{
+				name: "NOAA (AllOrigins proxy)",
+				url: `https://api.allorigins.win/raw?url=https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
+				headers: {},
+				parse: async (response: Response) => {
+					const text = await response.text();
+					if (text && text.length > 10 && text.includes(icaoCode)) {
+						return parseMetar(text);
+					}
+					return null;
+				},
+			},
+			{
+				name: "NOAA (corsproxy.io)",
+				url: `https://corsproxy.io/?https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
+				headers: {},
+				parse: async (response: Response) => {
+					const text = await response.text();
+					if (text && text.length > 10 && text.includes(icaoCode)) {
+						return parseMetar(text);
+					}
+					return null;
+				},
+			},
+			{
+				name: "CheckWX (może wymagać klucza)",
+				url: `https://api.checkwx.com/metar/${icaoCode}/decoded`,
+				headers: {},
+				parse: async (response: Response) => {
+					const json = await response.json();
+					if (json.data && json.data[0]) {
+						const rawText = json.data[0].raw_text || json.data[0];
+						if (typeof rawText === "string") {
+							return parseMetar(rawText);
+						}
+					}
+					return null;
+				},
+			},
+		];
 
-			// 1️⃣ próba – amerykański NOAA przez proxy (AllOrigins)
-			let response = await fetch(
-				`https://api.allorigins.win/raw?url=https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
-				{ signal: controller.signal }
-			);
-			clearTimeout(timeoutId);
-
-			if (!response.ok) throw new Error("Błąd pobierania METAR z NOAA");
-			let text = await response.text();
-
-			// jeśli dane są puste lub nie zawierają ICAO — uznaj za nieprawidłowe
-			if (!text || text.length < 10 || !text.includes(icaoCode)) {
-				throw new Error("Nieprawidłowe dane METAR z NOAA");
-			}
-
-			const parsed = parseMetar(text);
-			if (!parsed) throw new Error("Nie udało się sparsować METAR z NOAA");
-
-			setMetarData(parsed);
-			generateQuestions(parsed);
-			console.log("✅ Dane METAR pobrane z NOAA");
-		} catch (error) {
-			console.warn("⚠️ NOAA METAR nie działa, próba z API MET.NO", error);
-
+		// Próbuj każde API po kolei
+		for (const api of metarAPIs) {
 			try {
-				// 2️⃣ próba – europejski serwer MET.NO (Norwegian Meteorological Institute)
-				const metUrl = `https://api.met.no/weatherapi/tafmetar/1.0/metar.txt?station=${icaoCode}`;
-				const responseEU = await fetch(metUrl, {
-					headers: {
-						"User-Agent":
-							"AviateAI-METAR-Quiz/1.0 (michalzborowski@interia.pl)",
-					},
+				console.log(`🔄 Próba pobrania METAR z ${api.name}...`);
+
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+				const response = await fetch(api.url, {
+					signal: controller.signal,
+					headers: api.headers,
+					mode: "cors",
 				});
 
-				if (!responseEU.ok) throw new Error("Błąd pobierania METAR z MET.NO");
-				const textEU = await responseEU.text();
+				clearTimeout(timeoutId);
 
-				if (!textEU || textEU.length < 10 || !textEU.includes(icaoCode)) {
-					throw new Error("Nieprawidłowe dane METAR z MET.NO");
+				if (!response.ok) {
+					console.warn(`⚠️ ${api.name}: HTTP ${response.status}`);
+					continue;
 				}
 
-				const parsedEU = parseMetar(textEU);
-				if (!parsedEU)
-					throw new Error("Nie udało się sparsować METAR z MET.NO");
+				const parsed = await api.parse(response);
 
-				setMetarData(parsedEU);
-				generateQuestions(parsedEU);
-				console.log("✅ Dane METAR pobrane z MET.NO (Europa)");
-			} catch (err2) {
+				if (parsed) {
+					setMetarData(parsed);
+					generateQuestions(parsed);
+					console.log(`✅ Dane METAR pobrane z ${api.name}`);
+					setLoading(false);
+					return; // Sukces - wyjdź z funkcji
+				} else {
+					console.warn(`⚠️ ${api.name}: Nie udało się sparsować danych`);
+				}
+			} catch (error: any) {
 				console.warn(
-					"⚠️ MET.NO również nie odpowiada, przejście w tryb offline"
+					`⚠️ ${api.name} nie odpowiada:`,
+					error.message || "timeout"
 				);
-				useFallbackData(icaoCode);
+				continue; // Spróbuj następne API
 			}
-		} finally {
-			setLoading(false);
 		}
+
+		// Jeśli wszystkie API zawiodły, użyj fallback
+		console.warn("⚠️ Wszystkie API zawiodły, przejście w tryb offline");
+		useFallbackData(icaoCode);
+		setLoading(false);
 	};
 
 	const generateQuestions = (data: MetarData) => {
@@ -494,6 +545,9 @@ const MetarQuiz = () => {
 					<CardContent className="p-12 text-center">
 						<CloudRain className="h-12 w-12 mx-auto mb-4 animate-pulse text-primary" />
 						<p className="text-lg">Pobieranie danych METAR...</p>
+						<p className="text-sm text-muted-foreground mt-2">
+							Sprawdzam dostępne źródła danych
+						</p>
 					</CardContent>
 				</Card>
 			</div>

@@ -74,6 +74,42 @@ const Notes = () => {
 	const { toast } = useToast();
 
 	useEffect(() => {
+		const setupRealtimeSubscription = async () => {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (!user) return;
+
+			const channel = supabase
+				.channel("user_notes_changes")
+				.on(
+					"postgres_changes",
+					{
+						event: "*",
+						schema: "public",
+						table: "user_notes",
+						filter: `user_id=eq.${user.id}`,
+					},
+					() => {
+						fetchNotes();
+					}
+				)
+				.subscribe();
+
+			return () => {
+				supabase.removeChannel(channel);
+			};
+		};
+
+		fetchNotes();
+		const unsubscribe = setupRealtimeSubscription();
+
+		return () => {
+			unsubscribe.then((cleanup) => cleanup && cleanup());
+		};
+	}, []);
+
+	useEffect(() => {
 		fetchNotes();
 
 		// Subscribe to real-time changes
@@ -122,9 +158,20 @@ const Notes = () => {
 
 	const fetchNotes = async () => {
 		try {
+			// Najpierw pobierz aktualnie zalogowanego użytkownika
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser();
+
+			if (userError) throw userError;
+			if (!user) throw new Error("Nie jesteś zalogowany");
+
+			// Pobierz tylko notatki należące do tego użytkownika
 			const { data, error } = await supabase
 				.from("user_notes")
 				.select("*")
+				.eq("user_id", user.id) // Dodaj filtr po user_id
 				.order("created_at", { ascending: false });
 
 			if (error) throw error;
