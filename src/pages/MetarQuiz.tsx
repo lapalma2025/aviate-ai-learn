@@ -153,22 +153,10 @@ const MetarQuiz = () => {
 		setLoading(true);
 		setUsingFallback(false);
 
-		// Lista API do sprawdzenia po kolei
+		// Lista API do sprawdzenia po kolei - wszystkie NAPRAWDĘ darmowe i bez CORS
 		const metarAPIs = [
 			{
-				name: "AVWX (darmowe, bez klucza)",
-				url: `https://avwx.rest/api/metar/${icaoCode}?options=info,translate`,
-				headers: {},
-				parse: async (response: Response) => {
-					const json = await response.json();
-					if (json.raw) {
-						return parseMetar(json.raw);
-					}
-					return null;
-				},
-			},
-			{
-				name: "AWC Aviation Weather (oficjalne FAA)",
+				name: "AWC Aviation Weather (FAA - najbardziej niezawodne)",
 				url: `https://aviationweather.gov/api/data/metar?ids=${icaoCode}&format=raw`,
 				headers: {},
 				parse: async (response: Response) => {
@@ -180,7 +168,19 @@ const MetarQuiz = () => {
 				},
 			},
 			{
-				name: "NOAA (AllOrigins proxy)",
+				name: "NOAA przez thingproxy.freeboard.io",
+				url: `https://thingproxy.freeboard.io/fetch/https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
+				headers: {},
+				parse: async (response: Response) => {
+					const text = await response.text();
+					if (text && text.length > 10 && text.includes(icaoCode)) {
+						return parseMetar(text);
+					}
+					return null;
+				},
+			},
+			{
+				name: "NOAA przez AllOrigins",
 				url: `https://api.allorigins.win/raw?url=https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
 				headers: {},
 				parse: async (response: Response) => {
@@ -192,7 +192,7 @@ const MetarQuiz = () => {
 				},
 			},
 			{
-				name: "NOAA (corsproxy.io)",
+				name: "NOAA przez corsproxy.io",
 				url: `https://corsproxy.io/?https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
 				headers: {},
 				parse: async (response: Response) => {
@@ -204,16 +204,26 @@ const MetarQuiz = () => {
 				},
 			},
 			{
-				name: "CheckWX (może wymagać klucza)",
-				url: `https://api.checkwx.com/metar/${icaoCode}/decoded`,
+				name: "NOAA przez api.codetabs.com",
+				url: `https://api.codetabs.com/v1/proxy?quest=https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icaoCode}.TXT`,
 				headers: {},
 				parse: async (response: Response) => {
-					const json = await response.json();
-					if (json.data && json.data[0]) {
-						const rawText = json.data[0].raw_text || json.data[0];
-						if (typeof rawText === "string") {
-							return parseMetar(rawText);
-						}
+					const text = await response.text();
+					if (text && text.length > 10 && text.includes(icaoCode)) {
+						return parseMetar(text);
+					}
+					return null;
+				},
+			},
+			{
+				name: "Vatsim Data (sieć symulacyjna)",
+				url: `https://metar.vatsim.net/metar.php?id=${icaoCode}`,
+				headers: {},
+				parse: async (response: Response) => {
+					const text = await response.text();
+					// Vatsim zwraca tylko METAR bez dodatkowych linii
+					if (text && text.length > 10 && text.includes(icaoCode)) {
+						return parseMetar(text);
 					}
 					return null;
 				},
@@ -226,7 +236,7 @@ const MetarQuiz = () => {
 				console.log(`🔄 Próba pobrania METAR z ${api.name}...`);
 
 				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), 5000);
+				const timeoutId = setTimeout(() => controller.abort(), 6000);
 
 				const response = await fetch(api.url, {
 					signal: controller.signal,
@@ -248,6 +258,16 @@ const MetarQuiz = () => {
 					generateQuestions(parsed);
 					console.log(`✅ Dane METAR pobrane z ${api.name}`);
 					setLoading(false);
+
+					// Jeśli to nie jest fallback, pokaż sukces
+					if (!usingFallback) {
+						toast({
+							title: "✅ Dane rzeczywiste",
+							description: `METAR pobrany z ${api.name}`,
+							duration: 2000,
+						});
+					}
+
 					return; // Sukces - wyjdź z funkcji
 				} else {
 					console.warn(`⚠️ ${api.name}: Nie udało się sparsować danych`);
