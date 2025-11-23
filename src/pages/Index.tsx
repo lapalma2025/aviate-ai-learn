@@ -14,6 +14,11 @@ import heroImage from "@/assets/hero-aviation.jpg";
 import { useEffect, useState } from "react";
 import { Footer } from "@/components/Footer";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import homeScreenshot from "@/assets/screenshots/home.png";
+import metarScreenshot from "@/assets/screenshots/metar.png";
+import statsScreenshot from "@/assets/screenshots/stats.png";
+import planeScreenshot from "@/assets/screenshots/plane.png";
+import notesScreenshot from "@/assets/screenshots/notes.png";
 
 const Index = () => {
 	const [isVisible, setIsVisible] = useState(false);
@@ -266,6 +271,128 @@ const Index = () => {
 								<p className="text-sm text-muted-foreground">
 									Monitoruj swoje wyniki i zobacz w których obszarach potrzebujesz więcej praktyki
 								</p>
+							</div>
+						</div>
+
+						{/* Features Gallery */}
+						<div className="mt-16 space-y-8">
+							<div className="text-center animate-fade-in">
+								<h3 className="text-3xl md:text-4xl font-bold mb-3">
+									Poznaj Wszystkie Funkcje
+								</h3>
+								<p className="text-lg text-muted-foreground">
+									Zobacz, co oferuje platforma PPLA Academy
+								</p>
+							</div>
+
+							<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+								<div
+									className="group relative overflow-hidden rounded-2xl border-2 border-border hover:border-primary/50 transition-all duration-300 animate-fade-in hover:scale-[1.02] hover:shadow-2xl"
+									style={{ animationDelay: "0.6s" }}
+								>
+									<img
+										src={homeScreenshot}
+										alt="Dashboard PPLA Academy"
+										className="w-full h-auto object-cover"
+									/>
+									<div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+										<div>
+											<h4 className="text-xl font-bold mb-2">Dashboard</h4>
+											<p className="text-sm text-muted-foreground">
+												Śledź swoje postępy i dostęp do wszystkich funkcji
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<div
+									className="group relative overflow-hidden rounded-2xl border-2 border-border hover:border-primary/50 transition-all duration-300 animate-fade-in hover:scale-[1.02] hover:shadow-2xl"
+									style={{ animationDelay: "0.7s" }}
+								>
+									<img
+										src={metarScreenshot}
+										alt="METAR Quiz"
+										className="w-full h-auto object-cover"
+									/>
+									<div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+										<div>
+											<h4 className="text-xl font-bold mb-2">METAR Quiz</h4>
+											<p className="text-sm text-muted-foreground">
+												Ćwicz dekodowanie METAR z losowych lotnisk
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<div
+									className="group relative overflow-hidden rounded-2xl border-2 border-border hover:border-primary/50 transition-all duration-300 animate-fade-in hover:scale-[1.02] hover:shadow-2xl"
+									style={{ animationDelay: "0.8s" }}
+								>
+									<img
+										src={statsScreenshot}
+										alt="Statystyki"
+										className="w-full h-auto object-cover"
+									/>
+									<div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+										<div>
+											<h4 className="text-xl font-bold mb-2">Statystyki</h4>
+											<p className="text-sm text-muted-foreground">
+												Szczegółowa analiza twoich postępów w nauce
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<div
+									className="group relative overflow-hidden rounded-2xl border-2 border-border hover:border-primary/50 transition-all duration-300 animate-fade-in hover:scale-[1.02] hover:shadow-2xl"
+									style={{ animationDelay: "0.9s" }}
+								>
+									<img
+										src={planeScreenshot}
+										alt="Części samolotu 3D"
+										className="w-full h-auto object-cover"
+									/>
+									<div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+										<div>
+											<h4 className="text-xl font-bold mb-2">Model 3D</h4>
+											<p className="text-sm text-muted-foreground">
+												Interaktywne rozpoznawanie części samolotu Cessna 172
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<div
+									className="group relative overflow-hidden rounded-2xl border-2 border-border hover:border-primary/50 transition-all duration-300 animate-fade-in hover:scale-[1.02] hover:shadow-2xl"
+									style={{ animationDelay: "1s" }}
+								>
+									<img
+										src={notesScreenshot}
+										alt="Notatki lotnicze"
+										className="w-full h-auto object-cover"
+									/>
+									<div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+										<div>
+											<h4 className="text-xl font-bold mb-2">Notatki</h4>
+											<p className="text-sm text-muted-foreground">
+												Organizuj swoją wiedzę lotniczą w jednym miejscu
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<div
+									className="flex items-center justify-center p-8 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 animate-fade-in hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
+									style={{ animationDelay: "1.1s" }}
+								>
+									<div className="text-center">
+										<Award className="h-12 w-12 text-primary mx-auto mb-4" />
+										<h4 className="text-xl font-bold mb-2">I wiele więcej!</h4>
+										<p className="text-sm text-muted-foreground">
+											Funkcje egzaminacyjne, tryby nauki i więcej
+										</p>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>

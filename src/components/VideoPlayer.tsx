@@ -44,7 +44,7 @@ export const VideoPlayer = ({ src }: VideoPlayerProps) => {
       <video
         ref={videoRef}
         className="w-full h-full object-cover"
-        style={{ aspectRatio: "16/9", objectPosition: "center" }}
+        style={{ aspectRatio: "16/9", objectPosition: "20% center" }}
         onClick={togglePlay}
         onEnded={() => setIsPlaying(false)}
       >
