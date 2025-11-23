@@ -828,7 +828,7 @@ export default function AircraftParts() {
 						</button>
 						<div
 							className={`rounded-lg overflow-hidden border border-border shadow-lg ${
-								isFullscreen ? "fixed inset-4 z-50" : "aspect-video"
+								isFullscreen ? "fixed inset-4 z-50" : "h-[400px]"
 							}`}
 						>
 							<iframe
