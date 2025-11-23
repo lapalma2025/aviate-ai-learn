@@ -201,50 +201,86 @@ const Index = () => {
 				</div>
 			</section>
 
-			{/* Roadmap Section */}
-			<section className="py-24 bg-gradient-to-br from-primary/5 via-background to-accent/5">
-				<div className="container mx-auto px-4">
-					<div className="max-w-4xl mx-auto text-center space-y-12">
-						<div className="animate-fade-in">
-							<h2 className="text-4xl md:text-5xl font-bold mb-6">Co Dalej?</h2>
-							<p className="text-xl text-muted-foreground">
-								PPLA Academy to dopiero początek naszej podróży
+			{/* Video Demo Section */}
+			<section className="py-24 bg-background relative overflow-hidden">
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+				<div className="container mx-auto px-4 relative z-10">
+					<div className="max-w-6xl mx-auto">
+						<div className="text-center mb-12 animate-fade-in">
+							<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-4">
+								<Brain className="h-4 w-4 text-primary" />
+								<span className="text-sm font-medium">Zobacz jak to działa</span>
+							</div>
+							<h2 className="text-4xl md:text-5xl font-bold mb-4">
+								Tryb Nauki z AI
+							</h2>
+							<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+								Ucz się efektywnie z wyjaśnieniami AI i interaktywnym trybem pytań
 							</p>
 						</div>
 
-						<div className="grid md:grid-cols-2 gap-6">
-							<div
-								className="p-8 rounded-2xl bg-background/80 backdrop-blur-sm border-2 border-primary/30 shadow-lg animate-fade-in hover:scale-105 transition-transform duration-300"
-								style={{ animationDelay: "0.2s" }}
+						<div
+							className="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-primary/20 animate-fade-in hover:scale-[1.02] transition-all duration-500"
+							style={{ animationDelay: "0.2s" }}
+						>
+							<div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-accent/10 pointer-events-none z-10" />
+							<video
+								className="w-full aspect-video object-cover"
+								controls
+								poster="/placeholder.svg"
 							>
-								<div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-									<Rocket className="h-8 w-8 text-primary" />
+								<source src="/videos/demo-learning-mode.mp4" type="video/mp4" />
+								Twoja przeglądarka nie obsługuje odtwarzania wideo.
+							</video>
+						</div>
+
+						<div className="grid md:grid-cols-3 gap-6 mt-12">
+							<div
+								className="p-6 rounded-2xl bg-background/80 backdrop-blur-sm border border-border hover:border-primary/50 transition-all hover:-translate-y-1 duration-300 animate-fade-in"
+								style={{ animationDelay: "0.3s" }}
+							>
+								<div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+									<BookOpen className="h-6 w-6 text-primary" />
 								</div>
-								<h3 className="text-2xl font-bold mb-3">Wkrótce: ATPL</h3>
-								<p className="text-muted-foreground">
-									Przygotowanie do egzaminu ATPL - licencji pilota zawodowego.
-									Rozszerzamy platformę o zaawansowane materiały.
+								<h3 className="text-lg font-bold mb-2">Tryb Nauki</h3>
+								<p className="text-sm text-muted-foreground">
+									Ucz się w swoim tempie z natychmiastowym feedbackiem i szczegółowymi wyjaśnieniami
 								</p>
 							</div>
 
 							<div
-								className="p-8 rounded-2xl bg-background/80 backdrop-blur-sm border-2 border-accent/30 shadow-lg animate-fade-in hover:scale-105 transition-transform duration-300"
+								className="p-6 rounded-2xl bg-background/80 backdrop-blur-sm border border-border hover:border-primary/50 transition-all hover:-translate-y-1 duration-300 animate-fade-in"
 								style={{ animationDelay: "0.4s" }}
 							>
-								<div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-4">
-									<Award className="h-8 w-8 text-accent" />
+								<div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+									<Brain className="h-6 w-6 text-primary" />
 								</div>
-								<h3 className="text-2xl font-bold mb-3">
-									Przyszłość: Pełna Platforma
-								</h3>
-								<p className="text-muted-foreground">
-									Całościowa platforma szkoleniowa z materiałami wideo,
-									symulacjami i wsparciem instruktorów.
+								<h3 className="text-lg font-bold mb-2">Pytania do AI</h3>
+								<p className="text-sm text-muted-foreground">
+									Zadaj pytanie AI jeśli coś jest niejasne - otrzymasz szczegółowe wyjaśnienie
+								</p>
+							</div>
+
+							<div
+								className="p-6 rounded-2xl bg-background/80 backdrop-blur-sm border border-border hover:border-primary/50 transition-all hover:-translate-y-1 duration-300 animate-fade-in"
+								style={{ animationDelay: "0.5s" }}
+							>
+								<div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+									<Trophy className="h-6 w-6 text-primary" />
+								</div>
+								<h3 className="text-lg font-bold mb-2">Śledź Postępy</h3>
+								<p className="text-sm text-muted-foreground">
+									Monitoruj swoje wyniki i zobacz w których obszarach potrzebujesz więcej praktyki
 								</p>
 							</div>
 						</div>
 					</div>
 				</div>
+			</section>
+
+			{/* Roadmap Section */}
+			<section className="py-24 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+...
 			</section>
 
 			{/* Pricing Section */}
