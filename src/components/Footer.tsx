@@ -74,10 +74,10 @@ export const Footer = () => {
 							Masz pytania? Skontaktuj się z nami:
 							<br />
 							<a
-								href="mailto:kontakt@ppla-academy.pl"
+								href="mailto:kontakt@pplacademy.pl"
 								className="text-primary hover:underline"
 							>
-								kontakt@ppla-academy.pl
+								kontakt@pplacademy.pl{" "}
 							</a>
 						</p>
 					</div>

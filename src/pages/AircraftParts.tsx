@@ -774,7 +774,10 @@ const aircraftParts: AircraftPart[] = [
 ];
 
 export default function AircraftParts() {
-	const [selectedPart, setSelectedPart] = useState<AircraftPart | null>(null);
+	const [selectedExternalPart, setSelectedExternalPart] =
+		useState<AircraftPart | null>(null);
+	const [selectedInternalPart, setSelectedInternalPart] =
+		useState<AircraftPart | null>(null);
 	const [hoveredPart, setHoveredPart] = useState<number | null>(null);
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const [viewMode, setViewMode] = useState<"external" | "cockpit">("external");
@@ -797,107 +800,62 @@ export default function AircraftParts() {
 						Obróć model 3D lub wybierz część z listy, aby poznać jej funkcję
 					</p>
 				</CardHeader>
-			</Card>
-
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<Card className="lg:col-span-2">
-					<CardContent className="p-6">
-						<div className="relative">
-							<div className="absolute top-2 left-2 z-10 flex gap-2">
-								<Button
-									variant={viewMode === "external" ? "default" : "outline"}
-									size="sm"
-									onClick={() => setViewMode("external")}
-									className="backdrop-blur-sm"
-								>
-									<Plane className="h-4 w-4 mr-2" />
-									Zewnętrzny
-								</Button>
-								<Button
-									variant={viewMode === "cockpit" ? "default" : "outline"}
-									size="sm"
-									onClick={() => setViewMode("cockpit")}
-									className="backdrop-blur-sm"
-								>
-									<Gauge className="h-4 w-4 mr-2" />
-									Kokpit
-								</Button>
-							</div>
-							<button
-								onClick={() => setIsFullscreen(!isFullscreen)}
-								className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors"
+				<CardContent className="p-6">
+					<div className="relative">
+						<div className="absolute top-2 left-2 z-10 flex gap-2">
+							<Button
+								variant={viewMode === "external" ? "default" : "outline"}
+								size="sm"
+								onClick={() => setViewMode("external")}
+								className="backdrop-blur-sm"
 							>
-								<Maximize2 className="h-4 w-4" />
-							</button>
-							<div
-								className={`rounded-lg overflow-hidden border border-border shadow-lg ${
-									isFullscreen ? "fixed inset-4 z-50" : "aspect-video"
-								}`}
+								<Plane className="h-4 w-4 mr-2" />
+								Zewnętrzny
+							</Button>
+							<Button
+								variant={viewMode === "cockpit" ? "default" : "outline"}
+								size="sm"
+								onClick={() => setViewMode("cockpit")}
+								className="backdrop-blur-sm"
 							>
-								<iframe
-									key={viewMode}
-									src={modelUrls[viewMode]}
-									className="w-full h-full"
-									allow="autoplay; fullscreen; xr-spatial-tracking"
-									allowFullScreen
-								/>
-							</div>
-							{isFullscreen && (
-								<button
-									onClick={() => setIsFullscreen(false)}
-									className="fixed top-6 right-6 z-50 p-3 bg-background hover:bg-accent rounded-lg shadow-lg transition-colors"
-								>
-									<X className="h-5 w-5" />
-								</button>
-							)}
-							<p className="text-xs text-muted-foreground mt-2 text-center">
-								Użyj myszki aby obracać • Scroll aby przybliżać • Prawy przycisk
-								aby przesuwać
-							</p>
+								<Gauge className="h-4 w-4 mr-2" />
+								Kokpit
+							</Button>
 						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center justify-between">
-							Szczegóły części
-							{selectedPart && (
-								<button
-									onClick={() => setSelectedPart(null)}
-									className="text-muted-foreground hover:text-foreground transition-colors"
-								>
-									<X className="h-5 w-5" />
-								</button>
-							)}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{selectedPart ? (
-							<div className="space-y-4 animate-fade-in">
-								<div>
-									<h3 className="text-xl font-bold text-primary">
-										{selectedPart.name}
-									</h3>
-									<p className="text-sm text-muted-foreground">
-										{selectedPart.nameEn}
-									</p>
-								</div>
-								<div className="p-4 bg-primary/5 rounded-lg border border-primary/20 overflow-hidden">
-									<p className="text-sm leading-relaxed break-words overflow-wrap-anywhere whitespace-normal w-full">
-										{selectedPart.description}
-									</p>
-								</div>
-							</div>
-						) : (
-							<div className="text-center py-12 text-muted-foreground">
-								<p>Kliknij na część samolotu,</p>
-								<p>aby zobaczyć szczegółowy opis</p>
-							</div>
+						<button
+							onClick={() => setIsFullscreen(!isFullscreen)}
+							className="absolute top-2 right-2 z-10 p-2 bg-background/80 hover:bg-background rounded-lg backdrop-blur-sm transition-colors"
+						>
+							<Maximize2 className="h-4 w-4" />
+						</button>
+						<div
+							className={`rounded-lg overflow-hidden border border-border shadow-lg ${
+								isFullscreen ? "fixed inset-4 z-50" : "aspect-video"
+							}`}
+						>
+							<iframe
+								key={viewMode}
+								src={modelUrls[viewMode]}
+								className="w-full h-full"
+								allow="autoplay; fullscreen; xr-spatial-tracking"
+								allowFullScreen
+							/>
+						</div>
+						{isFullscreen && (
+							<button
+								onClick={() => setIsFullscreen(false)}
+								className="fixed top-6 right-6 z-50 p-3 bg-background hover:bg-accent rounded-lg shadow-lg transition-colors"
+							>
+								<X className="h-5 w-5" />
+							</button>
 						)}
-					</CardContent>
-				</Card>
-			</div>
+						<p className="text-xs text-muted-foreground mt-2 text-center">
+							Użyj myszki aby obracać • Scroll aby przybliżać • Prawy przycisk
+							aby przesuwać
+						</p>
+					</div>
+				</CardContent>
+			</Card>
 
 			<Card>
 				<CardHeader>
@@ -907,28 +865,68 @@ export default function AircraftParts() {
 					</p>
 				</CardHeader>
 				<CardContent>
-					<ScrollArea className="h-[400px] pr-4">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-							{aircraftParts
-								.filter((p) => p.category === "external")
-								.map((part) => (
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+						<div>
+							<h3 className="font-semibold mb-4 flex items-center justify-between">
+								Szczegóły części
+								{selectedExternalPart && (
 									<button
-										key={part.id}
-										onClick={() => setSelectedPart(part)}
-										className={`p-3 rounded-lg border text-left transition-all hover:shadow-md ${
-											selectedPart?.id === part.id
-												? "bg-primary/10 border-primary shadow-sm"
-												: "bg-card border-border hover:bg-accent"
-										}`}
+										onClick={() => setSelectedExternalPart(null)}
+										className="text-muted-foreground hover:text-foreground transition-colors"
 									>
-										<p className="font-semibold text-sm">{part.name}</p>
-										<p className="text-xs text-muted-foreground">
-											{part.nameEn}
-										</p>
+										<X className="h-4 w-4" />
 									</button>
-								))}
+								)}
+							</h3>
+							{selectedExternalPart ? (
+								<div className="space-y-4 animate-fade-in">
+									<div>
+										<h4 className="text-lg font-bold text-primary">
+											{selectedExternalPart.name}
+										</h4>
+										<p className="text-sm text-muted-foreground">
+											{selectedExternalPart.nameEn}
+										</p>
+									</div>
+									<div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+										<p className="text-sm leading-relaxed">
+											{selectedExternalPart.description}
+										</p>
+									</div>
+								</div>
+							) : (
+								<div className="text-center py-12 text-muted-foreground text-sm">
+									<p>Kliknij na część,</p>
+									<p>aby zobaczyć opis</p>
+								</div>
+							)}
 						</div>
-					</ScrollArea>
+
+						<div className="lg:col-span-2">
+							<ScrollArea className="h-[400px] pr-4">
+								<div className="flex flex-col gap-2">
+									{aircraftParts
+										.filter((p) => p.category === "external")
+										.map((part) => (
+											<button
+												key={part.id}
+												onClick={() => setSelectedExternalPart(part)}
+												className={`p-3 rounded-lg border text-left transition-all hover:shadow-md ${
+													selectedExternalPart?.id === part.id
+														? "bg-primary/10 border-primary shadow-sm"
+														: "bg-card border-border hover:bg-accent"
+												}`}
+											>
+												<p className="font-semibold text-sm">{part.name}</p>
+												<p className="text-xs text-muted-foreground">
+													{part.nameEn}
+												</p>
+											</button>
+										))}
+								</div>
+							</ScrollArea>
+						</div>
+					</div>
 				</CardContent>
 			</Card>
 
@@ -938,28 +936,68 @@ export default function AircraftParts() {
 					<p className="text-sm text-muted-foreground">Internal Components</p>
 				</CardHeader>
 				<CardContent>
-					<ScrollArea className="h-[400px] pr-4">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-							{aircraftParts
-								.filter((p) => p.category === "internal")
-								.map((part) => (
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+						<div>
+							<h3 className="font-semibold mb-4 flex items-center justify-between">
+								Szczegóły części
+								{selectedInternalPart && (
 									<button
-										key={part.id}
-										onClick={() => setSelectedPart(part)}
-										className={`p-3 rounded-lg border text-left transition-all hover:shadow-md ${
-											selectedPart?.id === part.id
-												? "bg-primary/10 border-primary shadow-sm"
-												: "bg-card border-border hover:bg-accent"
-										}`}
+										onClick={() => setSelectedInternalPart(null)}
+										className="text-muted-foreground hover:text-foreground transition-colors"
 									>
-										<p className="font-semibold text-sm">{part.name}</p>
-										<p className="text-xs text-muted-foreground">
-											{part.nameEn}
-										</p>
+										<X className="h-4 w-4" />
 									</button>
-								))}
+								)}
+							</h3>
+							{selectedInternalPart ? (
+								<div className="space-y-4 animate-fade-in">
+									<div>
+										<h4 className="text-lg font-bold text-primary">
+											{selectedInternalPart.name}
+										</h4>
+										<p className="text-sm text-muted-foreground">
+											{selectedInternalPart.nameEn}
+										</p>
+									</div>
+									<div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+										<p className="text-sm leading-relaxed">
+											{selectedInternalPart.description}
+										</p>
+									</div>
+								</div>
+							) : (
+								<div className="text-center py-12 text-muted-foreground text-sm">
+									<p>Kliknij na część,</p>
+									<p>aby zobaczyć opis</p>
+								</div>
+							)}
 						</div>
-					</ScrollArea>
+
+						<div className="lg:col-span-2">
+							<ScrollArea className="h-[400px] pr-4">
+								<div className="flex flex-col gap-2">
+									{aircraftParts
+										.filter((p) => p.category === "internal")
+										.map((part) => (
+											<button
+												key={part.id}
+												onClick={() => setSelectedInternalPart(part)}
+												className={`p-3 rounded-lg border text-left transition-all hover:shadow-md ${
+													selectedInternalPart?.id === part.id
+														? "bg-primary/10 border-primary shadow-sm"
+														: "bg-card border-border hover:bg-accent"
+												}`}
+											>
+												<p className="font-semibold text-sm">{part.name}</p>
+												<p className="text-xs text-muted-foreground">
+													{part.nameEn}
+												</p>
+											</button>
+										))}
+								</div>
+							</ScrollArea>
+						</div>
+					</div>
 				</CardContent>
 			</Card>
 		</div>
