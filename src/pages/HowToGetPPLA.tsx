@@ -79,12 +79,6 @@ const HowToGetPPLA = () => {
 							<div className="flex items-start gap-3">
 								<CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
 								<div>
-									<strong>Wykształcenie:</strong> co najmniej gimnazjalne.
-								</div>
-							</div>
-							<div className="flex items-start gap-3">
-								<CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-								<div>
 									<strong>Badania lekarskie:</strong> Świadectwo zdrowia klasy 2
 									lub LAPL (świadectwo zdrowia lotniczego)
 								</div>
@@ -108,8 +102,8 @@ const HowToGetPPLA = () => {
 						</p>
 						<p className="text-muted-foreground">
 							Szkolenie można odbyć w <strong>szkole lotniczej</strong> (forma
-							stacjonarna) lub samodzielnie przygotować się do egzaminu
-							teoretycznego za pomocą platform.
+							stacjonarna) lub przygotować się do egzaminu teoretycznego za
+							pomocą platform.
 						</p>
 					</CardContent>
 				</Card>
@@ -145,9 +139,9 @@ const HowToGetPPLA = () => {
 											co najmniej 5 godzin czasu lotu w lotach nawigacyjnych
 										</li>
 										<li>
-											co najmniej 1 lot nawigacyjny na odległość min. 270 km
-											(150 NM) z lądowaniami z pełnym zatrzymaniem na 2
-											lotniskach innych niż lotnisko odlotu
+											co najmniej 1 lot nawigacyjny na odległość min. 270 km z
+											lądowaniami z pełnym zatrzymaniem na 2 lotniskach innych
+											niż lotnisko odlotu
 										</li>
 									</ul>
 								</div>
@@ -329,7 +323,7 @@ const HowToGetPPLA = () => {
 							<div className="flex items-start gap-3">
 								<AlertCircle className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
 								<div>
-									<strong>Otkładanie teorii na ostatnią chwilę</strong> – teoria
+									<strong>Odkładanie teorii na ostatnią chwilę</strong> – teoria
 									wymaga czasu i systematycznej nauki
 								</div>
 							</div>

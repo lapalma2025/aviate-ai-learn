@@ -52,8 +52,8 @@ const CostsPPLA = () => {
 							tempa nauki.
 						</p>
 						<p className="text-muted-foreground">
-							Szacunkowy koszt pełnego szkolenia PPL(A) w Polsce wynosi od{" "}
-							<strong>38 000 PLN do 45 000 PLN</strong>. Poniżej znajdziesz
+							Szacunkowy koszt pełnego szkolenia PPL(A) w Polsce wynosi średnio
+							od <strong>38 000 PLN do 45 000 PLN</strong>. Poniżej znajdziesz
 							szczegółowy rozkład kosztów, aby lepiej zaplanować swoją lotniczą
 							przygodę.
 						</p>
@@ -224,7 +224,7 @@ const CostsPPLA = () => {
 									📝 Egzamin teoretyczny ULC
 								</h3>
 								<p className="text-muted-foreground">
-									<strong>Koszt:</strong> 241 PLN
+									<strong>Koszt:</strong> 475 PLN
 								</p>
 								<p className="text-sm text-muted-foreground mt-1">
 									9 testów (po jednym z każdego przedmiotu), opłata za podejście
@@ -237,7 +237,7 @@ const CostsPPLA = () => {
 									✈️ Egzamin praktyczny
 								</h3>
 								<p className="text-muted-foreground">
-									<strong>Koszt:</strong> 475 PLN
+									<strong>Koszt:</strong> 1259 PLN
 								</p>
 								<p className="text-sm text-muted-foreground mt-1">
 									Opłata za egzamin praktyczny w ULC
@@ -256,39 +256,6 @@ const CostsPPLA = () => {
 									uprawnienia
 								</p>
 							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Koszt egzaminatora */}
-				<Card className="mb-8">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-3 text-2xl">
-							<GraduationCap className="h-8 w-8 text-primary" />
-							Koszt egzaminatora
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<p className="text-muted-foreground">
-							Egzamin praktyczny przeprowadza certyfikowany egzaminator ULC.
-						</p>
-						<div className="border-l-4 border-primary pl-4">
-							<h3 className="font-semibold text-lg mb-2">
-								👨‍✈️ Wynagrodzenie egzaminatora
-							</h3>
-							<p className="text-muted-foreground">
-								<strong>Koszt:</strong> 1 500 – 3 000 PLN
-							</p>
-							<p className="text-sm text-muted-foreground mt-1">
-								Zależy od egzaminatora i czasu trwania egzaminu (lot + część
-								ustna)
-							</p>
-						</div>
-						<div className="bg-muted/50 rounded-lg p-4 mt-4">
-							<p className="text-sm text-muted-foreground">
-								ℹ️ Niektóre szkoły lotnicze mają umowy z egzaminatorami, co może
-								obniżyć koszt.
-							</p>
 						</div>
 					</CardContent>
 				</Card>
