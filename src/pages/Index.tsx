@@ -225,9 +225,9 @@ const Index = () => {
 						>
 							<div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-accent/10 pointer-events-none z-10" />
 							<video
-								className="w-full aspect-video object-cover"
+								className="w-full h-full object-cover"
+								style={{ aspectRatio: "16/9" }}
 								controls
-								poster="/placeholder.svg"
 							>
 								<source src="/videos/demo-learning-mode.mp4" type="video/mp4" />
 								Twoja przeglądarka nie obsługuje odtwarzania wideo.
