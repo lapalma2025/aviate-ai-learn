@@ -13,6 +13,7 @@ import {
 import heroImage from "@/assets/hero-aviation.jpg";
 import { useEffect, useState } from "react";
 import { Footer } from "@/components/Footer";
+import { VideoPlayer } from "@/components/VideoPlayer";
 
 const Index = () => {
 	const [isVisible, setIsVisible] = useState(false);
@@ -224,14 +225,7 @@ const Index = () => {
 							style={{ animationDelay: "0.2s" }}
 						>
 							<div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-accent/10 pointer-events-none z-10" />
-							<video
-								className="w-full h-full object-cover"
-								style={{ aspectRatio: "16/9" }}
-								controls
-							>
-								<source src="/videos/demo-learning-mode.mp4" type="video/mp4" />
-								Twoja przeglądarka nie obsługuje odtwarzania wideo.
-							</video>
+							<VideoPlayer src="/videos/demo-learning-mode.mp4" />
 						</div>
 
 						<div className="grid md:grid-cols-3 gap-6 mt-12">
