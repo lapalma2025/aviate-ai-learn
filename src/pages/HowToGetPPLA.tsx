@@ -203,31 +203,31 @@ const HowToGetPPLA = () => {
 
 							<ul className="space-y-2 ml-6">
 								<li className="text-muted-foreground">
-									✈️ Air Law – 28 pytań, 45 min
+									✈️ Prawo lotnicze – 28 pytań, 45 min
 								</li>
 								<li className="text-muted-foreground">
-									🛩️ Aircraft General Knowledge – 16 pytań, 30 min
+									🛩️ Ogólna wiedza o statku powietrznym – 16 pytań, 30 min
 								</li>
 								<li className="text-muted-foreground">
-									📊 Flight Performance & Planning – 20 pytań, 60 min
+									📊 Osiągi i planowanie lotu – 20 pytań, 60 min
 								</li>
 								<li className="text-muted-foreground">
-									🧠 Human Performance – 12 pytań, 30 min
+									🧠 Człowiek – możliwości i ograniczenia – 12 pytań, 30 min
 								</li>
 								<li className="text-muted-foreground">
-									🌦️ Meteorology – 12 pytań, 30 min
+									🌦️ Meteorologia – 12 pytań, 30 min
 								</li>
 								<li className="text-muted-foreground">
-									🧭 Navigation – 24 pytania, 60 min
+									🧭 Nawigacja – 24 pytania, 60 min
 								</li>
 								<li className="text-muted-foreground">
-									📋 Operational Procedures – 12 pytań, 30 min
+									📋 Procedury operacyjne – 12 pytań, 30 min
 								</li>
 								<li className="text-muted-foreground">
-									🔄 Principles of Flight – 16 pytań, 45 min
+									🔄 Zasady lotu – 16 pytań, 45 min
 								</li>
 								<li className="text-muted-foreground">
-									📻 Communications – 12 pytań, 30 min
+									📻 Łączność – 12 pytań, 30 min
 								</li>
 							</ul>
 						</div>

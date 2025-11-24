@@ -444,7 +444,7 @@ const Index = () => {
 
 							<ul className="space-y-4 mb-8">
 								{[
-									"Nielimitowany dostęp do wszystkich pytań PPLA",
+									"Dostęp do wszystkich oficjalnych pytań PPLA",
 									"AI-powered wyjaśnienia do każdej odpowiedzi",
 									"Tryb nauki i egzaminacyjny",
 									"Możliwość zapisywania własnych notatek",
