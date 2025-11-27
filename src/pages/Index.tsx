@@ -224,8 +224,7 @@ const Index = () => {
 								Tryb Nauki z AI
 							</h2>
 							<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-								Ucz się efektywnie z wyjaśnieniami AI i interaktywnym trybem
-								pytań
+								Ucz się efektywnie z interaktywnym trybem pytań
 							</p>
 						</div>
 
