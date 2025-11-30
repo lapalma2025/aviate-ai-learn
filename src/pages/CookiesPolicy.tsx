@@ -245,7 +245,7 @@ const CookiesPolicy = () => {
 							<h2 className="text-2xl font-semibold mb-4">§7 Kontakt</h2>
 							<p>
 								W razie pytań dotyczących plików cookies, prosimy o kontakt pod
-								adresem e-mail: [adres e-mail].
+								adresem e-mail: kontakt@pplacademy.pl
 							</p>
 						</section>
 
