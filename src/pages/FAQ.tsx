@@ -6,7 +6,9 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Plane } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const faqItems = [
@@ -58,7 +60,7 @@ const faqJsonLd = {
 
 const FAQ = () => {
 	return (
-		<div className="min-h-screen flex flex-col bg-background">
+		<div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-primary/5">
 			<Helmet>
 				<title>FAQ - Najczęstsze pytania o PPL(A) | PPLA Academy</title>
 				<meta
@@ -68,23 +70,19 @@ const FAQ = () => {
 				<script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
 			</Helmet>
 
-			{/* Header */}
-			<header className="border-b border-border bg-card/50 backdrop-blur-sm">
-				<div className="container mx-auto px-4 py-4">
-					<Link to="/" className="flex items-center gap-2 w-fit">
-						<Plane className="h-6 w-6 text-primary" />
-						<span className="font-bold text-lg">PPLA Academy</span>
-					</Link>
-				</div>
-			</header>
+			<div className="container mx-auto px-4 py-8 flex-1">
+				<Link to="/">
+					<Button variant="ghost" className="mb-6">
+						<ArrowLeft className="mr-2 h-4 w-4" />
+						Powrót do strony głównej
+					</Button>
+				</Link>
 
-			{/* Main content */}
-			<main className="flex-1 container mx-auto px-4 py-12">
-				<div className="max-w-3xl mx-auto">
-					<h1 className="text-3xl md:text-4xl font-bold mb-4">
+				<Card className="max-w-4xl mx-auto p-8 md:p-12">
+					<h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">
 						Najczęściej zadawane pytania (FAQ)
 					</h1>
-					<p className="text-muted-foreground mb-8">
+					<p className="text-muted-foreground mb-8 text-center">
 						Znajdź odpowiedzi na najczęstsze pytania dotyczące licencji pilota
 						PPL(A) i naszej platformy do nauki.
 					</p>
@@ -102,7 +100,7 @@ const FAQ = () => {
 						))}
 					</Accordion>
 
-					<div className="mt-12 p-6 bg-card rounded-lg border border-border">
+					<div className="mt-12 p-6 bg-primary/5 rounded-lg border border-border">
 						<h2 className="font-semibold mb-2">Masz więcej pytań?</h2>
 						<p className="text-muted-foreground text-sm">
 							Skontaktuj się z nami:{" "}
@@ -114,8 +112,8 @@ const FAQ = () => {
 							</a>
 						</p>
 					</div>
-				</div>
-			</main>
+				</Card>
+			</div>
 
 			<Footer />
 		</div>
