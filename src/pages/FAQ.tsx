@@ -1,13 +1,18 @@
 import { Helmet } from "react-helmet-async";
 import { Footer } from "@/components/Footer";
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, CheckCircle, Monitor, BarChart3, Smartphone, BookOpen, HelpCircle, Mail } from "lucide-react";
+import {
+	ArrowLeft,
+	Clock,
+	CheckCircle,
+	Monitor,
+	BarChart3,
+	Smartphone,
+	BookOpen,
+	HelpCircle,
+	Mail,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 const faqItems = [
@@ -76,79 +81,58 @@ const FAQ = () => {
 			</Helmet>
 
 			{/* Hero Section */}
-			<div className="relative overflow-hidden">
-				<div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent" />
-				<div className="absolute top-20 right-20 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-				<div className="absolute bottom-0 left-10 w-48 h-48 bg-primary/5 rounded-full blur-2xl" />
-				
-				<div className="container mx-auto px-4 py-8 relative">
+			<section className="bg-gradient-to-b from-primary/10 to-background py-20 px-4">
+				<div className="container mx-auto max-w-4xl text-center">
+					<HelpCircle className="h-16 w-16 mx-auto mb-6 text-primary" />
+					<h1 className="text-4xl md:text-5xl font-bold mb-6">
+						Najczęściej zadawane pytania (FAQ)
+					</h1>
+					<p className="text-xl text-muted-foreground mb-8">
+						Znajdź odpowiedzi na pytania dotyczące licencji PPL(A) i naszej
+						platformy
+					</p>
 					<Link to="/">
-						<Button variant="ghost" className="mb-8 hover:bg-primary/10">
+						<Button variant="outline" size="lg">
 							<ArrowLeft className="mr-2 h-4 w-4" />
 							Powrót do strony głównej
 						</Button>
 					</Link>
+				</div>
+			</section>
 
-					<div className="max-w-3xl mx-auto text-center mb-12">
-						<div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-6">
-							<HelpCircle className="w-8 h-8 text-primary" />
-						</div>
-						<h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-							Najczęściej zadawane pytania
-						</h1>
-						<p className="text-lg text-muted-foreground">
-							Znajdź odpowiedzi na pytania dotyczące licencji PPL(A) i naszej platformy
+			<div className="container mx-auto max-w-4xl px-4 py-12 flex-1">
+				{/* FAQ Items */}
+				{faqItems.map((item, index) => (
+					<Card key={index} className="mb-6">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-3 text-xl">
+								<item.icon className="h-7 w-7 text-primary flex-shrink-0" />
+								{item.question}
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-muted-foreground">{item.answer}</p>
+						</CardContent>
+					</Card>
+				))}
+
+				{/* CTA Section */}
+				<Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 mt-12">
+					<CardContent className="py-12 text-center">
+						<Mail className="h-16 w-16 mx-auto mb-6 text-primary" />
+						<h2 className="text-3xl font-bold mb-4">Masz więcej pytań?</h2>
+						<p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+							Nie znalazłeś odpowiedzi na swoje pytanie? Skontaktuj się z nami,
+							chętnie pomożemy!
 						</p>
-					</div>
-				</div>
-			</div>
-
-			{/* FAQ Section */}
-			<div className="container mx-auto px-4 pb-16 flex-1">
-				<div className="max-w-3xl mx-auto">
-					<Accordion type="single" collapsible className="space-y-4">
-						{faqItems.map((item, index) => (
-							<AccordionItem 
-								key={index} 
-								value={`item-${index}`}
-								className="border border-border/50 rounded-xl px-6 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
-							>
-								<AccordionTrigger className="text-left py-5 hover:no-underline group">
-									<div className="flex items-center gap-4">
-										<div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-											<item.icon className="w-5 h-5 text-primary" />
-										</div>
-										<span className="font-medium text-base">{item.question}</span>
-									</div>
-								</AccordionTrigger>
-								<AccordionContent className="text-muted-foreground pb-5 pl-14">
-									{item.answer}
-								</AccordionContent>
-							</AccordionItem>
-						))}
-					</Accordion>
-
-					{/* Contact CTA */}
-					<div className="mt-16 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-8 md:p-10">
-						<div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
-						<div className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8">
-							<div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center">
-								<Mail className="w-7 h-7 text-primary" />
-							</div>
-							<div className="text-center md:text-left flex-1">
-								<h2 className="text-xl font-semibold mb-2">Masz więcej pytań?</h2>
-								<p className="text-muted-foreground">
-									Nie znalazłeś odpowiedzi? Skontaktuj się z nami, chętnie pomożemy!
-								</p>
-							</div>
-							<a href="mailto:kontakt@pplacademy.pl">
-								<Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25">
-									Napisz do nas
-								</Button>
-							</a>
-						</div>
-					</div>
-				</div>
+						<a href="mailto:kontakt@pplacademy.pl">
+							<Button size="lg">
+								<Mail className="mr-2 h-4 w-4" />
+								Napisz do nas
+							</Button>
+						</a>
+					</CardContent>
+				</Card>
 			</div>
 
 			<Footer />
