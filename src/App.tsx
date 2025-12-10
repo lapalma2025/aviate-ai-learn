@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import DashboardLayout from "./components/DashboardLayout";
@@ -23,6 +24,7 @@ import Privacy from "./pages/Privacy";
 import CookiesPolicy from "./pages/CookiesPolicy";
 import HowToGetPPLA from "./pages/HowToGetPPLA";
 import CostsPPLA from "./pages/CostsPPLA";
+import FAQ from "./pages/FAQ";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { CookieBanner } from "./components/CookieBanner";
 import {
@@ -60,37 +62,40 @@ const App = () => {
 	}, []);
 
 	return (
-		<QueryClientProvider client={queryClient}>
-			<TooltipProvider>
-				<Toaster />
-				<Sonner />
-				{showBanner && <CookieBanner />}
-				<BrowserRouter>
-					<ScrollToTop />
-					<Routes>
-						<Route path="/" element={<Index />} />
-						<Route path="/auth" element={<Auth />} />
-						<Route path="/terms" element={<Terms />} />
-						<Route path="/privacy" element={<Privacy />} />
-						<Route path="/cookies-policy" element={<CookiesPolicy />} />
-						<Route path="/how-to-get-ppla" element={<HowToGetPPLA />} />
-						<Route path="/costs-ppla" element={<CostsPPLA />} />
-						<Route element={<DashboardLayout />}>
-							<Route path="/dashboard" element={<Dashboard />} />
-							<Route path="/learn" element={<Learn />} />
-							<Route path="/exam" element={<Exam />} />
-							<Route path="/metar-quiz" element={<MetarQuiz />} />
-							<Route path="/stats" element={<Stats />} />
-							<Route path="/admin" element={<Admin />} />
-							<Route path="/aircraft-parts" element={<AircraftParts />} />
-							<Route path="/notes" element={<Notes />} />
-							<Route path="/data-migration" element={<DataMigration />} />
-						</Route>
-						<Route path="*" element={<NotFound />} />
-					</Routes>
-				</BrowserRouter>
-			</TooltipProvider>
-		</QueryClientProvider>
+		<HelmetProvider>
+			<QueryClientProvider client={queryClient}>
+				<TooltipProvider>
+					<Toaster />
+					<Sonner />
+					{showBanner && <CookieBanner />}
+					<BrowserRouter>
+						<ScrollToTop />
+						<Routes>
+							<Route path="/" element={<Index />} />
+							<Route path="/auth" element={<Auth />} />
+							<Route path="/terms" element={<Terms />} />
+							<Route path="/privacy" element={<Privacy />} />
+							<Route path="/cookies-policy" element={<CookiesPolicy />} />
+							<Route path="/how-to-get-ppla" element={<HowToGetPPLA />} />
+							<Route path="/costs-ppla" element={<CostsPPLA />} />
+							<Route path="/faq" element={<FAQ />} />
+							<Route element={<DashboardLayout />}>
+								<Route path="/dashboard" element={<Dashboard />} />
+								<Route path="/learn" element={<Learn />} />
+								<Route path="/exam" element={<Exam />} />
+								<Route path="/metar-quiz" element={<MetarQuiz />} />
+								<Route path="/stats" element={<Stats />} />
+								<Route path="/admin" element={<Admin />} />
+								<Route path="/aircraft-parts" element={<AircraftParts />} />
+								<Route path="/notes" element={<Notes />} />
+								<Route path="/data-migration" element={<DataMigration />} />
+							</Route>
+							<Route path="*" element={<NotFound />} />
+						</Routes>
+					</BrowserRouter>
+				</TooltipProvider>
+			</QueryClientProvider>
+		</HelmetProvider>
 	);
 };
 
