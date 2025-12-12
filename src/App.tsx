@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Learn from "./pages/Learn";
@@ -73,6 +74,7 @@ const App = () => {
 						<Routes>
 							<Route path="/" element={<Index />} />
 							<Route path="/auth" element={<Auth />} />
+							<Route path="/reset-password" element={<ResetPassword />} />
 							<Route path="/terms" element={<Terms />} />
 							<Route path="/privacy" element={<Privacy />} />
 							<Route path="/cookies-policy" element={<CookiesPolicy />} />

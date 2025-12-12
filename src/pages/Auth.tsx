@@ -197,6 +197,14 @@ const Auth = () => {
 											disabled={loading}
 										/>
 									</div>
+									<div className="flex justify-end">
+										<Link
+											to="/reset-password"
+											className="text-sm text-primary hover:underline"
+										>
+											Zapomniałeś hasła?
+										</Link>
+									</div>
 									<Button type="submit" className="w-full" disabled={loading}>
 										{loading ? (
 											<>
