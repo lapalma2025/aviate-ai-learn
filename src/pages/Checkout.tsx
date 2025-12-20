@@ -128,11 +128,11 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 										radios: true,
 										spacedAccordionItems: true,
 									},
-									defaultValues: {
-										billingDetails: {
-											email: "",
-										},
+									wallets: {
+										applePay: "never",
+										googlePay: "never",
 									},
+									paymentMethodOrder: ["card", "blik", "p24"],
 								}}
 							/>
 						</div>
