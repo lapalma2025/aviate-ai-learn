@@ -23,13 +23,10 @@ serve(async (req) => {
 			amount: (amount * 100).toString(), // Stripe używa najmniejszej jednostki waluty (grosze)
 			currency: currency,
 		});
-		// Wyraźnie określamy dozwolone metody płatności (bez Link)
+
+		// Tylko metody, które masz włączone (bez dodawania nowych)
 		params.append("payment_method_types[]", "card");
 		params.append("payment_method_types[]", "blik");
-		params.append("payment_method_types[]", "p24");
-		// Wyłączamy Link aby nie pokazywał zapisanych kart
-		params.append("payment_method_options[link][persistent_token]", "");
-		params.append("payment_method_options[card][setup_future_usage]", "");
 
 		const response = await fetch("https://api.stripe.com/v1/payment_intents", {
 			method: "POST",

@@ -127,12 +127,11 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 										defaultCollapsed: false,
 										radios: true,
 										spacedAccordionItems: true,
+										// 0 = pokaż WSZYSTKIE metody bez przycisku "Więcej"
+										visibleAccordionItemsCount: 0,
 									},
-									wallets: {
-										applePay: "never",
-										googlePay: "never",
-									},
-									paymentMethodOrder: ["card", "blik", "p24"],
+									// Pilnujemy kolejności i żeby BLIK był widoczny od razu
+									paymentMethodOrder: ["blik", "card"],
 								}}
 							/>
 						</div>
