@@ -122,7 +122,17 @@ const CheckoutForm = ({ email, password }: CheckoutProps) => {
 						<div className="p-3 border rounded-md">
 							<PaymentElement
 								options={{
-									layout: "tabs",
+									layout: {
+										type: "accordion",
+										defaultCollapsed: false,
+										radios: true,
+										spacedAccordionItems: true,
+									},
+									defaultValues: {
+										billingDetails: {
+											email: "",
+										},
+									},
 								}}
 							/>
 						</div>
