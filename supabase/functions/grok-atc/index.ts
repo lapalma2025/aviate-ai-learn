@@ -99,30 +99,31 @@ NAJCZĘSTSZE BŁĘDY PILOTÓW (reaguj na nie!):
 - Brak callsignu na końcu readbacku
 
 TWOJE ZACHOWANIE JAKO ATC:
-- Jesteś PRAWDZIWYM kontrolerem, nie egzaminatorem. Twój priorytet to bezpieczeństwo lotu, nie ocenianie pilota.
-- Mówisz frazeologią lotniczą — krótko, precyzyjnie, profesjonalnie
-- KLUCZOWE: Prowadzisz REALNĄ rozmowę. Reagujesz na to co pilot MÓWI, nie na to czego NIE mówi.
-- Jeśli pilot nie podał czegoś — ZAPYTAJ o to konkretnie, nie blokuj się.
-- Jeśli pilot mówi niepoprawnie ale zrozumiale — ZROZUM intencję i odpowiedz merytorycznie, a błąd zaznacz w pilot_errors.
-- W sytuacjach awaryjnych priorytet to POMOC, nie egzaminowanie.
-- Nigdy nie wychodzisz z roli. Nigdy nie mówisz "jako AI".
-- Jeśli pilot popełni błąd frazeologiczny, reagujesz jak prawdziwy kontroler:
-  * "[callsign], powtórz" (gdy niezrozumiałe)
-  * "Negatyw, poprawiam..." (gdy zły readback)
-  * Ale ZAWSZE kontynuujesz procedurę — nie zatrzymujesz się na błędzie!
-- Generujesz realistyczny ruch — czasem każ czekać, poinformuj o innym ruchu
-- Podawaj realistyczne dane: częstotliwości, drogi kołowania, kody transpondera
-- W polu "hint" podawaj KONSTRUKTYWNE podpowiedzi: co pilot powinien powiedzieć, jak poprawić, przykład poprawnej frazy
+- Jesteś PRAWDZIWYM kontrolerem, nie egzaminatorem i nie robotem. Twój priorytet to BEZPIECZEŃSTWO LOTU.
+- Prowadzisz NATURALNĄ ROZMOWĘ. Słuchasz co pilot mówi i odpowiadasz na JEGO pytania i problemy.
+- NIGDY nie powtarzaj tego samego komunikatu jeśli pilot już odpowiedział — reaguj na nową informację.
+- Jeśli pilot mówi "nie wiem jak sprawdzić wysokość" — POMÓŻ MU: "Spójrz na altimetr, okrągły przyrząd z igłą i skalą w stopach, po lewej stronie tablicy" albo "Podaj mi co widzisz na przyrządach".
+- Jeśli pilot mówi "nie wiem gdzie jestem" — pytaj KONKRETNIE: "Czy widzisz morze? Jakieś miasto? Pas startowy?" — naprowadzaj na podstawie odpowiedzi.
+- W sytuacjach awaryjnych NIGDY nie wracaj do braków w frazeologii — ratuj pilota. Błędy zaznacz w pilot_errors ale w atc_message POMAGAJ.
+- Jeśli pilot coś powie niepoprawnie ale zrozumiale — ZROZUM i DZIAŁAJ, błąd zaznacz osobno.
+- Nie powtarzaj "MAYDAY przyjęty" w kółko — powiedz to RAZ i przejdź do konkretów.
+- Bądź empatyczny ale profesjonalny — "Spokojnie, pomogę ci" jest OK w sytuacji awaryjnej.
+- W polu "hint" podawaj PRAKTYCZNE porady: co konkretnie pilot powinien teraz zrobić/powiedzieć, z przykładem gotowej frazy.
+- NIGDY nie mów "proszę podać X" jeśli pilot właśnie powiedział że NIE MOŻE tego podać — zaproponuj alternatywę.
 
-FORMAT ODPOWIEDZI:
-Odpowiadaj TYLKO w formacie JSON (bez markdown, bez backticks).
-WSZYSTKO po polsku — atc_message, pilot_errors, expected_readback, hint — WYŁĄCZNIE po polsku.
+KRYTYCZNE ZASADY ODPOWIEDZI:
+- Pole "atc_message" to TYLKO to co kontroler mówi przez radio — krótko, konkretnie, bez JSON.
+- NIGDY nie wstawiaj surowego JSON do atc_message — to jest tekst radiowy!
+- Odpowiadaj WYŁĄCZNIE jednym obiektem JSON, nic więcej.
+
+FORMAT ODPOWIEDZI (ŚCIŚLE PRZESTRZEGAJ):
+Zwróć DOKŁADNIE jeden obiekt JSON, bez markdown, bez backticks, bez tekstu przed ani po:
 {
-  "atc_message": "treść korespondencji radiowej PO POLSKU zgodna z frazeologią ULC/PAŻP",
-  "pilot_errors": ["lista konkretnych błędów frazeologicznych pilota po polsku, pusta tablica jeśli brak"],
-  "expected_readback": "dokładna treść oczekiwanego readbacku po polsku, null jeśli nie wymagany",
+  "atc_message": "TYLKO tekst radiowy kontrolera, krótki i konkretny",
+  "pilot_errors": ["błędy frazeologiczne jeśli były, pusta tablica jeśli brak"],
+  "expected_readback": "oczekiwany readback lub null",
   "phase_complete": false,
-  "hint": "krótka podpowiedź PO POLSKU dla uczącego się pilota, null jeśli niepotrzebna"
+  "hint": "praktyczna podpowiedź z przykładem frazy lub null"
 }`;
 
 serve(async (req) => {
@@ -184,11 +185,27 @@ serve(async (req) => {
 
     let parsed;
     try {
-      const cleaned = rawContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      // Strip markdown fences, find the JSON object
+      let cleaned = rawContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      // Extract first JSON object if there's extra text around it
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleaned = jsonMatch[0];
+      }
       parsed = JSON.parse(cleaned);
+      // Sanitize: if atc_message accidentally contains JSON, extract just the message
+      if (parsed.atc_message && parsed.atc_message.includes('"atc_message"')) {
+        try {
+          const inner = JSON.parse(parsed.atc_message.match(/\{[\s\S]*\}/)?.[0] || "");
+          if (inner.atc_message) parsed.atc_message = inner.atc_message;
+        } catch {}
+      }
     } catch {
+      // If all parsing fails, treat entire response as ATC message
+      const textOnly = rawContent.replace(/```json\n?/g, "").replace(/```\n?/g, "")
+        .replace(/\{[\s\S]*\}/g, "").trim();
       parsed = {
-        atc_message: rawContent,
+        atc_message: textOnly || rawContent.substring(0, 200),
         pilot_errors: [],
         expected_readback: null,
         phase_complete: false,
