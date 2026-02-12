@@ -59,42 +59,77 @@ const SCENARIOS: Scenario[] = [
     label: "Uruchomienie i kołowanie",
     description: "EPWA (Warszawa Okęcie), Cessna 172, SP-KAM",
     prompt:
-      "Lotnisko: EPWA (Warszawa Okęcie). Znak wywoławczy pilota: SP-KAM. Typ: Cessna 172. Faza lotu: uruchomienie silnika i kołowanie na pas startowy. Rozpocznij od oczekiwania na kontakt pilota na częstotliwości ground.",
+      `Lotnisko: EPWA (Warszawa Okęcie). Znak wywoławczy pilota: SP-KAM. Typ: Cessna 172. Faza lotu: uruchomienie silnika i kołowanie na pas startowy.
+Pilot powinien: zgłosić się na częstotliwości ground podając callsign, typ, stanowisko, poprosić o zgodę na uruchomienie, potem o warunki pogodowe (pas w użyciu, wiatr, QNH), potem poprosić o kołowanie.
+ATC podaje: pas w użyciu (np. 33), wiatr, widzialność, QNH, instrukcje kołowania z drogami (np. "kołuj do punktu oczekiwania pasa 33 drogami A, C").
+Oczekiwany readback pilota: pas w użyciu, QNH, instrukcje kołowania z drogami i callsign na końcu.
+Częstotliwości: Ground 121.900, Wieża 118.100.`,
   },
   {
     id: "takeoff",
     label: "Start i odlot",
     description: "EPKK (Kraków Balice), PA-28, SP-LTA",
     prompt:
-      "Lotnisko: EPKK (Kraków-Balice). Znak wywoławczy pilota: SP-LTA. Typ: PA-28 Warrior. Faza lotu: pilot jest na progu drogi startowej, gotowy do startu. Wiatr 240/8kt, QNH 1013. Ruch na lotnisku: Boeing 737 na podejściu końcowym.",
+      `Lotnisko: EPKK (Kraków-Balice). Znak wywoławczy pilota: SP-LTA. Typ: PA-28 Warrior. Faza: pilot jest w punkcie oczekiwania pasa 25, gotowy do odlotu.
+WAŻNE: Pilot mówi "gotowy do odlotu" (NIGDY "gotowy do startu" — słowa "start/startować" tylko w zezwoleniu ATC).
+ATC może: kazać zająć pas i oczekiwać ("zajmij pas 25 i oczekuj"), potem dać zezwolenie na start z wiatrem.
+Po starcie ATC daje instrukcje odlotowe: "po odlocie kurs pasa, wznoś 3000 stóp, transponder 4521".
+Potem zmiana częstotliwości: "kontakt zbliżanie 119.100".
+Wiatr 240/8kt, QNH 1013. Boeing 737 na podejściu końcowym — może być opóźnienie.`,
   },
   {
     id: "circuit",
     label: "Lot po kręgu",
     description: "EPPO (Poznań Ławica), Cessna 152, SP-ABC",
     prompt:
-      "Lotnisko: EPPO (Poznań Ławica). Znak wywoławczy pilota: SP-ABC. Typ: Cessna 152. Faza lotu: lot po kręgu (circuit pattern). Pilot jest w powietrzu na downwindzie, lewy kręg, pas 28. QNH 1015, wiatr 260/5kt.",
+      `Lotnisko: EPPO (Poznań Ławica). Znak wywoławczy pilota: SP-ABC. Typ: Cessna 152. Faza: lot po kręgu (circuit), lewy kręg, pas 28.
+Pilot jest na downwindzie i powinien kolejno zgłaszać: downwind, base (z info "podwozie wypuszczone"), prostą (final).
+ATC sekwencjonuje ruch — może kazać przedłużyć downwind lub dać numer w kolejce.
+Przy zezwoleniu na lądowanie ATC podaje wiatr i "zezwalam lądować".
+Pilot NIGDY nie powtarza wiatru w readbacku! Tylko "zezwalasz lądować na pasie 28, SP-ABC".
+Po lądowaniu pilot mówi "pas zwolniłem drogą [litera]" (NIGDY "na ziemi"!).
+QNH 1015, wiatr 260/5kt. Częstotliwość wieży 118.300.`,
   },
   {
     id: "landing",
     label: "Podejście i lądowanie",
     description: "EPWR (Wrocław), Diamond DA40, SP-WRC",
     prompt:
-      "Lotnisko: EPWR (Wrocław). Znak wywoławczy pilota: SP-WRC. Typ: Diamond DA40. Faza lotu: podejście do lądowania, pilot zgłasza się na częstotliwości wieży w odległości 10 NM od lotniska. Wiatr 180/12kt, porywisty do 20kt. QNH 1008. Lekki deszcz.",
+      `Lotnisko: EPWR (Wrocław). Znak wywoławczy pilota: SP-WRC. Typ: Diamond DA40. Faza: podejście do lądowania.
+Pilot zgłasza się: "[lotnisko] wieża, SP-WRC, Diamond DA40, 10 mil na północ od Wrocławia, wysokość 3000 stóp, intencje lądowanie".
+ATC odpowiada: callsign, w kontakcie radarowym, pas w użyciu, QNH, instrukcje zniżania.
+Pilot readbackuje: QNH, pas, przyjąłem, callsign.
+ATC wektoruje: zmiana kursu i wysokości, potem "zgłoś prostą".
+Na prostej: ATC daje wiatr i "zezwalam lądować".
+Po lądowaniu: "pas zwolniłem drogą [E]", ATC daje instrukcje kołowania.
+Wiatr 180/12kt porywisty do 20kt, QNH 1008, lekki deszcz. Częstotliwość: Wieża 118.300.`,
   },
   {
     id: "emergency",
     label: "Sytuacja awaryjna",
     description: "EPGD (Gdańsk), Cessna 172, SP-MAY",
     prompt:
-      "Lotnisko: EPGD (Gdańsk). Znak wywoławczy pilota: SP-MAY. Typ: Cessna 172. Faza lotu: lot na trasie, pilot ma problem z silnikiem (spadek obrotów). Jest 15 NM na zachód od lotniska na wysokości 3000 ft. QNH 1020.",
+      `Lotnisko: EPGD (Gdańsk). Znak wywoławczy pilota: SP-MAY. Typ: Cessna 172. Faza: sytuacja awaryjna — spadek obrotów silnika.
+Pilot 15 NM na zachód, wysokość 3000 stóp. Powinien nadać:
+"PAN PAN PAN PAN PAN PAN, Gdańsk wieża, SP-MAY, Cessna 172, spadek obrotów silnika, 15 mil na zachód, wysokość 3000 stóp, proszę o wektorowanie do lądowania awaryjnego"
+(lub MAYDAY jeśli sytuacja krytyczna).
+ATC reaguje natychmiast i priorytetowo: potwierdza, wektoruje, informuje służby ratownicze.
+ATC pyta o: liczbę osób na pokładzie, zapas paliwa, intencje pilota.
+QNH 1020. Częstotliwość: Wieża 118.100.`,
   },
   {
     id: "vfr_transit",
     label: "Przelot przez CTR",
     description: "EPWA CTR, Piper PA-28, SP-FLY",
     prompt:
-      "Lotnisko: przelot przez strefę kontrolowaną EPWA CTR. Znak wywoławczy pilota: SP-FLY. Typ: Piper PA-28. Faza lotu: pilot zgłasza się na granicy CTR, chce przelecieć tranzytem z zachodu na wschód na wysokości 1500 ft. QNH 1017.",
+      `Przelot przez strefę kontrolowaną EPWA CTR. Znak wywoławczy pilota: SP-FLY. Typ: Piper PA-28.
+Pilot zgłasza się na granicy CTR: "[stacja], SP-FLY, Piper PA-28, na granicy CTR od zachodu, wysokość 1500 stóp, proszę o tranzyt ze zachodu na wschód".
+ATC: potwierdza kontakt radarowy, podaje QNH, wyznacza trasę tranzytu, ewentualne ograniczenia wysokości.
+ATC może: kazać utrzymywać konkretną wysokość, podać punkty meldunkowe, informować o ruchu.
+Pilot readbackuje: trasę, wysokość, QNH.
+Po opuszczeniu CTR pilot zgłasza: "SP-FLY, opuszczam CTR, zmieniam częstotliwość".
+ATC: "SP-FLY, zezwalam na zmianę częstotliwości, do widzenia".
+QNH 1017. Częstotliwość: Zbliżanie 119.100.`,
   },
 ];
 
