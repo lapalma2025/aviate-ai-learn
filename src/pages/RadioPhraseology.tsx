@@ -311,13 +311,23 @@ const RadioPhraseology = () => {
     }
   };
 
-  const resetSession = () => {
+  const resetSession = useCallback(() => {
     setMessages([]);
     setSessionActive(false);
     radioStatic.stop();
     speech.stop();
     radioTTS.cancel();
-  };
+  }, [radioStatic, speech, radioTTS]);
+
+  // Cleanup all audio/speech on unmount (route change)
+  useEffect(() => {
+    return () => {
+      radioStatic.stop();
+      speech.stop();
+      radioTTS.cancel();
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
 
   return (
     <div className="w-full flex justify-center">
