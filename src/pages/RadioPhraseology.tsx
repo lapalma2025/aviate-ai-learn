@@ -500,15 +500,7 @@ const RadioPhraseology = () => {
                         ref={micBtnRef}
                         size="lg"
                         variant={speech.isListening ? "destructive" : "default"}
-                        onClick={() => {
-                          if (speech.isListening) {
-                            speech.stop();
-                            radioStatic.start(); // Resume static after recording
-                          } else {
-                            radioStatic.stop(); // Mute static while recording (prevents mic interference)
-                            speech.start();
-                          }
-                        }}
+                        onClick={speech.toggle}
                         disabled={loading}
                         className="w-20 h-20 rounded-full flex flex-col gap-1 text-lg shadow-lg transition-all duration-300"
                       >
