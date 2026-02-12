@@ -46,8 +46,19 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
       }, 2500);
     };
     recognition.onerror = (e: any) => {
-      console.error("[Speech] Recognition error:", e.error, e.message);
+      console.warn("[Speech] Recognition error:", e.error, e.message);
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      // On "no-speech" or "aborted", auto-restart instead of giving up
+      if (e.error === "no-speech" || e.error === "aborted") {
+        console.log("[Speech] Auto-restarting after", e.error);
+        try { recognition.stop(); } catch {}
+        setTimeout(() => {
+          if (recognitionRef.current === recognition) {
+            try { recognition.start(); } catch {}
+          }
+        }, 300);
+        return;
+      }
       setIsListening(false);
     };
     recognition.onend = () => {
