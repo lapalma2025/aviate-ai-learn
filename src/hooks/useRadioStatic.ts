@@ -2,20 +2,23 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 export function useRadioStatic() {
   const ctxRef = useRef<AudioContext | null>(null);
-  const noiseRef = useRef<ScriptProcessorNode | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const start = useCallback(() => {
-    if (ctxRef.current) return;
+  const ensureContext = useCallback(() => {
+    if (ctxRef.current && ctxRef.current.state !== "closed") return;
+
     const ctx = new AudioContext();
-    const bufferSize = 4096;
-    const whiteNoise = ctx.createScriptProcessor(bufferSize, 1, 1);
-    whiteNoise.onaudioprocess = (e) => {
-      const output = e.outputBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-    };
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
 
     const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
@@ -23,24 +26,34 @@ export function useRadioStatic() {
     filter.Q.value = 0.5;
 
     const gain = ctx.createGain();
-    gain.gain.value = 0.03;
+    gain.gain.value = 0; // start muted
 
-    whiteNoise.connect(filter);
+    noise.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
+    noise.start();
 
     ctxRef.current = ctx;
-    noiseRef.current = whiteNoise;
-    setIsPlaying(true);
+    gainRef.current = gain;
   }, []);
 
-  const stop = useCallback(() => {
-    if (ctxRef.current) {
-      ctxRef.current.close();
-      ctxRef.current = null;
-      noiseRef.current = null;
-      setIsPlaying(false);
+  const start = useCallback(() => {
+    ensureContext();
+    if (gainRef.current) {
+      gainRef.current.gain.value = 0.03;
     }
+    if (ctxRef.current?.state === "suspended") {
+      ctxRef.current.resume();
+    }
+    setIsPlaying(true);
+  }, [ensureContext]);
+
+  const stop = useCallback(() => {
+    // Mute instead of closing — prevents AudioContext closure from killing the mic
+    if (gainRef.current) {
+      gainRef.current.gain.value = 0;
+    }
+    setIsPlaying(false);
   }, []);
 
   const toggle = useCallback(() => {
@@ -48,7 +61,9 @@ export function useRadioStatic() {
     else start();
   }, [isPlaying, start, stop]);
 
-  useEffect(() => () => { ctxRef.current?.close(); }, []);
+  useEffect(() => () => {
+    try { ctxRef.current?.close(); } catch {}
+  }, []);
 
   return { isPlaying, toggle, start, stop };
 }
