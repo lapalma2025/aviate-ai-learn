@@ -6,6 +6,7 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
   const onResultRef = useRef(onResult);
   const transcriptRef = useRef("");
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wantsListeningRef = useRef(false);
   onResultRef.current = onResult;
 
   const start = useCallback(() => {
@@ -14,10 +15,11 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
     if (!SpeechRecognition) return;
 
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try { recognitionRef.current.stop(); } catch {}
     }
 
     transcriptRef.current = "";
+    wantsListeningRef.current = true;
 
     const recognition = new SpeechRecognition();
     recognition.lang = "pl-PL";
@@ -26,11 +28,10 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event: any) => {
-      console.log("[Speech] onresult fired, resultIndex:", event.resultIndex, "results length:", event.results.length);
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
           const transcript = event.results[i][0].transcript;
-          console.log("[Speech] Final transcript chunk:", transcript);
+          console.log("[Speech] Final transcript:", transcript);
           transcriptRef.current += (transcriptRef.current ? " " : "") + transcript;
         }
       }
@@ -42,28 +43,31 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
           onResultRef.current(transcriptRef.current.trim());
           transcriptRef.current = "";
         }
-        recognition.stop();
+        // Stop after sending
+        wantsListeningRef.current = false;
+        try { recognition.stop(); } catch {}
       }, 2500);
     };
+
     recognition.onerror = (e: any) => {
-      console.warn("[Speech] Recognition error:", e.error, e.message);
+      console.warn("[Speech] Error:", e.error);
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-      // On "no-speech" or "aborted", auto-restart instead of giving up
-      if (e.error === "no-speech" || e.error === "aborted") {
-        console.log("[Speech] Auto-restarting after", e.error);
-        try { recognition.stop(); } catch {}
-        setTimeout(() => {
-          if (recognitionRef.current === recognition) {
-            try { recognition.start(); } catch {}
-          }
-        }, 300);
-        return;
+      // no-speech and aborted are normal — auto-restart happens in onend
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        wantsListeningRef.current = false;
+        setIsListening(false);
       }
-      setIsListening(false);
     };
+
+    // Auto-restart on silence timeout (browser stops after ~5-10s silence)
     recognition.onend = () => {
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-      setIsListening(false);
+      if (wantsListeningRef.current) {
+        // Browser stopped due to silence — restart automatically
+        console.log("[Speech] Auto-restarting via onend");
+        try { recognition.start(); } catch {}
+      } else {
+        setIsListening(false);
+      }
     };
 
     recognitionRef.current = recognition;
@@ -73,13 +77,14 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
 
   const stop = useCallback(() => {
     // Send accumulated transcript before stopping
+    wantsListeningRef.current = false;
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     if (transcriptRef.current.trim()) {
       onResultRef.current(transcriptRef.current.trim());
       transcriptRef.current = "";
     }
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try { recognitionRef.current.stop(); } catch {}
       recognitionRef.current = null;
     }
     setIsListening(false);

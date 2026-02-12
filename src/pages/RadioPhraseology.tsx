@@ -284,10 +284,8 @@ const RadioPhraseology = () => {
         await radioTTS.speak(data.atc_message);
       }
 
-      // Auto-restart mic after ATC finishes
-      if (!data.phase_complete) {
-        setTimeout(() => speech.start(), 400);
-      }
+      // Note: mic is NOT auto-restarted here because recognition.start()
+      // must be called from a direct user gesture (click). User clicks PTT again.
     } catch (error: any) {
       toast({
         title: "Błąd komunikacji",
