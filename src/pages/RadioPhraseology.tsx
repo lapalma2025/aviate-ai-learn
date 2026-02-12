@@ -136,6 +136,7 @@ const RadioPhraseology = () => {
 
   // Voice: when speech result arrives, auto-send
   const handleVoiceResult = useCallback((text: string) => {
+    console.log("[Radio] handleVoiceResult called with:", text);
     if (!text.trim()) return;
     sendRef.current(text);
   }, []);
@@ -222,6 +223,7 @@ const RadioPhraseology = () => {
   };
 
   const sendMessageWithText = async (text: string) => {
+    console.log("[Radio] sendMessageWithText called, text:", text, "loading:", loading);
     if (!text.trim() || loading) return;
 
     const pilotMsg: ChatMessage = { role: "pilot", text: text.trim() };

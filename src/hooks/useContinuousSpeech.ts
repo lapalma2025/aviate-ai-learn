@@ -26,22 +26,27 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event: any) => {
+      console.log("[Speech] onresult fired, resultIndex:", event.resultIndex, "results length:", event.results.length);
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
-          transcriptRef.current += (transcriptRef.current ? " " : "") + event.results[i][0].transcript;
+          const transcript = event.results[i][0].transcript;
+          console.log("[Speech] Final transcript chunk:", transcript);
+          transcriptRef.current += (transcriptRef.current ? " " : "") + transcript;
         }
       }
       // Reset silence timer — auto-send after 2.5s silence
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = setTimeout(() => {
         if (transcriptRef.current.trim()) {
+          console.log("[Speech] Silence timeout — sending:", transcriptRef.current.trim());
           onResultRef.current(transcriptRef.current.trim());
           transcriptRef.current = "";
         }
         recognition.stop();
       }, 2500);
     };
-    recognition.onerror = () => {
+    recognition.onerror = (e: any) => {
+      console.error("[Speech] Recognition error:", e.error, e.message);
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       setIsListening(false);
     };
