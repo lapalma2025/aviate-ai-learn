@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -21,7 +20,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Radio,
-  Send,
   Volume2,
   VolumeX,
   AlertTriangle,
@@ -29,8 +27,13 @@ import {
   RotateCcw,
   Loader2,
   Mic,
-  MicOff,
+  Plane,
+  TowerControl,
 } from "lucide-react";
+import { useRadioStatic } from "@/hooks/useRadioStatic";
+import { useRadioTTS } from "@/hooks/useRadioTTS";
+import { useContinuousSpeech } from "@/hooks/useContinuousSpeech";
+import gsap from "gsap";
 
 // ─── Types ───────────────────────────────────────────────────
 interface ChatMessage {
@@ -95,159 +98,89 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
-// ─── Web Audio API: Radio Static ─────────────────────────────
-function useRadioStatic() {
-  const ctxRef = useRef<AudioContext | null>(null);
-  const noiseRef = useRef<ScriptProcessorNode | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const start = useCallback(() => {
-    if (ctxRef.current) return;
-    const ctx = new AudioContext();
-    const bufferSize = 4096;
-    const whiteNoise = ctx.createScriptProcessor(bufferSize, 1, 1);
-    whiteNoise.onaudioprocess = (e) => {
-      const output = e.outputBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-    };
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = 1000;
-    filter.Q.value = 0.5;
-
-    const gain = ctx.createGain();
-    gain.gain.value = 0.03;
-
-    whiteNoise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-
-    ctxRef.current = ctx;
-    noiseRef.current = whiteNoise;
-    setIsPlaying(true);
-  }, []);
-
-  const stop = useCallback(() => {
-    if (ctxRef.current) {
-      ctxRef.current.close();
-      ctxRef.current = null;
-      noiseRef.current = null;
-      setIsPlaying(false);
-    }
-  }, []);
-
-  const toggle = useCallback(() => {
-    if (isPlaying) stop();
-    else start();
-  }, [isPlaying, start, stop]);
-
-  useEffect(() => () => { ctxRef.current?.close(); }, []);
-
-  return { isPlaying, toggle, start, stop };
-}
-
-// ─── TTS with radio effect ───────────────────────────────────
-function speakText(text: string): Promise<void> {
-  return new Promise((resolve) => {
-    if (!("speechSynthesis" in window)) { resolve(); return; }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "pl-PL";
-    utterance.rate = 0.9;
-    utterance.pitch = 0.85;
-    utterance.volume = 0.9;
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
-    window.speechSynthesis.speak(utterance);
-  });
-}
-
-// ─── Continuous Speech Recognition ───────────────────────────
-function useContinuousSpeech(onResult: (text: string) => void) {
-  const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
-  const onResultRef = useRef(onResult);
-  onResultRef.current = onResult;
-
-  const start = useCallback(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
-
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = "pl-PL";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.onresult = (event: any) => {
-      const text = event.results[0]?.[0]?.transcript;
-      if (text) onResultRef.current(text);
-    };
-    recognition.onerror = () => setIsListening(false);
-    recognition.onend = () => setIsListening(false);
-
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
-  }, []);
-
-  const stop = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
-    setIsListening(false);
-  }, []);
-
-  const toggle = useCallback(() => {
-    if (isListening) stop(); else start();
-  }, [isListening, start, stop]);
-
-  const supported =
-    typeof window !== "undefined" &&
-    !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-
-  return { isListening, toggle, start, stop, supported };
-}
-
 // ─── Main Component ──────────────────────────────────────────
 const RadioPhraseology = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState<string>("");
   const [sessionActive, setSessionActive] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(true);
-  const [voiceMode, setVoiceMode] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const scenarioCardRef = useRef<HTMLDivElement>(null);
+  const chatCardRef = useRef<HTMLDivElement>(null);
+  const micBtnRef = useRef<HTMLButtonElement>(null);
   const { toast } = useToast();
   const radioStatic = useRadioStatic();
+  const radioTTS = useRadioTTS();
 
-  // Voice mode: when speech result arrives, auto-send
+  // Voice: when speech result arrives, auto-send
   const handleVoiceResult = useCallback((text: string) => {
     if (!text.trim()) return;
-    setInput(text);
-    // We'll send on next tick so input state updates
-    setTimeout(() => {
-      sendMessageWithText(text);
-    }, 100);
+    sendMessageWithText(text);
   }, []);
 
   const speech = useContinuousSpeech(handleVoiceResult);
 
-  // Auto-scroll
+  // ─── GSAP Animations ────────────────────────────────────
+  useEffect(() => {
+    if (headerRef.current) {
+      gsap.fromTo(
+        headerRef.current,
+        { opacity: 0, y: -30 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!sessionActive && scenarioCardRef.current) {
+      gsap.fromTo(
+        scenarioCardRef.current,
+        { opacity: 0, y: 40, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)" }
+      );
+    }
+  }, [sessionActive]);
+
+  useEffect(() => {
+    if (sessionActive && chatCardRef.current) {
+      gsap.fromTo(
+        chatCardRef.current,
+        { opacity: 0, scale: 0.92, y: 30 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "power3.out" }
+      );
+    }
+  }, [sessionActive]);
+
+  // Animate new messages
   useEffect(() => {
     if (scrollRef.current) {
+      const lastMsg = scrollRef.current.querySelector(".chat-message:last-child");
+      if (lastMsg) {
+        gsap.fromTo(
+          lastMsg,
+          { opacity: 0, x: lastMsg.classList.contains("msg-pilot") ? 40 : -40, scale: 0.9 },
+          { opacity: 1, x: 0, scale: 1, duration: 0.4, ease: "power2.out" }
+        );
+      }
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Pulse mic button when idle
+  useEffect(() => {
+    if (sessionActive && micBtnRef.current && !loading && !speech.isListening) {
+      const pulse = gsap.to(micBtnRef.current, {
+        boxShadow: "0 0 0 12px hsla(var(--primary) / 0.15)",
+        duration: 1.2,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
+      return () => { pulse.kill(); };
+    }
+  }, [sessionActive, loading, speech.isListening]);
 
   const startSession = async () => {
     const scenario = SCENARIOS.find((s) => s.id === selectedScenario);
@@ -263,7 +196,7 @@ const RadioPhraseology = () => {
     setMessages([
       {
         role: "system",
-        text: `📡 Scenariusz: ${scenario.label}\n${scenario.description}\n\nNawiąż kontakt radiowy z wieżą.\n\n${voiceMode ? "🎙️ Tryb głosowy aktywny — kliknij mikrofon i mów." : "⌨️ Tryb tekstowy — wpisz korespondencję."}`,
+        text: `📡 Scenariusz: ${scenario.label}\n${scenario.description}\n\n🎙️ Kliknij mikrofon i nawiąż kontakt radiowy z wieżą.`,
       },
     ]);
     setSessionActive(true);
@@ -274,12 +207,11 @@ const RadioPhraseology = () => {
     if (!text.trim() || loading) return;
 
     const pilotMsg: ChatMessage = { role: "pilot", text: text.trim() };
-    setMessages(prev => {
+    setMessages((prev) => {
       const newMsgs = [...prev, pilotMsg];
       doSend(newMsgs, text.trim());
       return newMsgs;
     });
-    setInput("");
   };
 
   const doSend = async (currentMessages: ChatMessage[], pilotText: string) => {
@@ -324,14 +256,14 @@ const RadioPhraseology = () => {
         return updated;
       });
 
-      // TTS — speak the ATC response, then re-enable mic in voice mode
+      // TTS with radio filter
       if (ttsEnabled && data.atc_message) {
-        await speakText(data.atc_message);
+        await radioTTS.speak(data.atc_message);
       }
 
-      // In voice mode, auto-restart listening after ATC finishes speaking
-      if (voiceMode && !data.phase_complete) {
-        setTimeout(() => speech.start(), 300);
+      // Auto-restart mic after ATC finishes
+      if (!data.phase_complete) {
+        setTimeout(() => speech.start(), 400);
       }
     } catch (error: any) {
       toast({
@@ -344,166 +276,163 @@ const RadioPhraseology = () => {
     }
   };
 
-  const sendMessage = () => sendMessageWithText(input);
-
   const resetSession = () => {
     setMessages([]);
     setSessionActive(false);
-    setInput("");
     radioStatic.stop();
     speech.stop();
-    window.speechSynthesis?.cancel();
-  };
-
-  const toggleVoiceMode = () => {
-    const newMode = !voiceMode;
-    setVoiceMode(newMode);
-    if (!newMode) {
-      speech.stop();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+    radioTTS.cancel();
   };
 
   return (
     <div className="max-w-4xl space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Radio className="h-8 w-8 text-primary" />
-          Frazeologia Radiowa
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Ćwicz korespondencję radiową pilot–wieża z AI kontrolerem ATC
-        </p>
+      <div ref={headerRef} className="flex items-center gap-4">
+        <div className="relative">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Radio className="h-7 w-7 text-primary" />
+          </div>
+          <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary animate-pulse" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Frazeologia Radiowa</h1>
+          <p className="text-muted-foreground text-sm">
+            Ćwicz korespondencję pilot–wieża z AI kontrolerem ATC
+          </p>
+        </div>
       </div>
 
       {/* Scenario selection */}
       {!sessionActive && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Wybierz scenariusz</CardTitle>
-            <CardDescription>
-              Wybierz fazę lotu do przećwiczenia. AI wcieli się w rolę kontrolera ATC i będzie wymagający — jak prawdziwy kontroler.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select value={selectedScenario} onValueChange={setSelectedScenario}>
-              <SelectTrigger>
-                <SelectValue placeholder="Wybierz scenariusz..." />
-              </SelectTrigger>
-              <SelectContent>
-                {SCENARIOS.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.label} — {s.description}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div ref={scenarioCardRef}>
+          <Card className="border-2 border-primary/20 shadow-lg overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-primary via-primary/60 to-primary/0" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <Plane className="h-5 w-5" />
+                Wybierz scenariusz
+              </CardTitle>
+              <CardDescription>
+                AI wcieli się w rolę wymagającego kontrolera ATC (ICAO/ULC).
+                Komunikacja odbywa się głosowo — jak przez prawdziwe radio.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Select value={selectedScenario} onValueChange={setSelectedScenario}>
+                <SelectTrigger className="h-12 text-base">
+                  <SelectValue placeholder="Wybierz scenariusz..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {SCENARIOS.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      <span className="font-medium">{s.label}</span>
+                      <span className="text-muted-foreground ml-2 text-xs">{s.description}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {selectedScenario && (
-              <div className="p-3 bg-muted rounded-md text-sm">
-                {SCENARIOS.find((s) => s.id === selectedScenario)?.description}
+              {selectedScenario && (
+                <div className="p-4 bg-muted/50 rounded-xl border text-sm flex items-start gap-3">
+                  <Radio className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                  <div>
+                    <p className="font-medium mb-1">
+                      {SCENARIOS.find((s) => s.id === selectedScenario)?.label}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {SCENARIOS.find((s) => s.id === selectedScenario)?.description}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 text-sm text-muted-foreground flex items-center gap-2">
+                <Mic className="h-4 w-4 text-primary" />
+                Tryb głosowy z filtrem radiowym — mów jak przez COM radio
               </div>
-            )}
 
-            {/* Voice mode toggle */}
-            <div className="flex items-center gap-3 p-3 border rounded-md">
               <Button
-                variant={voiceMode ? "default" : "outline"}
-                size="sm"
-                onClick={toggleVoiceMode}
-                className="gap-2"
+                onClick={startSession}
+                disabled={!selectedScenario}
+                className="w-full h-12 text-base font-semibold gap-2"
               >
-                <Mic className="h-4 w-4" />
-                {voiceMode ? "Tryb głosowy ✓" : "Tryb głosowy"}
+                <Radio className="h-5 w-5" />
+                Rozpocznij sesję radiową
               </Button>
-              <span className="text-sm text-muted-foreground">
-                {voiceMode
-                  ? "Będziesz rozmawiać głosowo z kontrolerem — jak przez radio!"
-                  : "Włącz aby rozmawiać głosowo zamiast pisać"}
-              </span>
-            </div>
-
-            <Button onClick={startSession} disabled={!selectedScenario} className="w-full">
-              <Radio className="h-4 w-4 mr-2" />
-              Rozpocznij sesję radiową
-            </Button>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Active session */}
       {sessionActive && (
-        <>
+        <div ref={chatCardRef} className="space-y-4">
           {/* Controls bar */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="gap-1">
-              <Radio className="h-3 w-3" />
+            <Badge variant="outline" className="gap-1.5 py-1 px-3">
+              <Radio className="h-3 w-3 text-primary" />
               {SCENARIOS.find((s) => s.id === selectedScenario)?.label}
             </Badge>
 
-            <Badge variant={voiceMode ? "default" : "secondary"} className="gap-1">
-              {voiceMode ? <Mic className="h-3 w-3" /> : <MicOff className="h-3 w-3" />}
-              {voiceMode ? "Głos" : "Tekst"}
+            <Badge variant="secondary" className="gap-1.5 py-1 px-3">
+              <Mic className="h-3 w-3" />
+              Głos + Radio FX
             </Badge>
 
+            <div className="flex-1" />
+
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={radioStatic.toggle}
+              className="gap-1.5"
             >
               {radioStatic.isPlaying ? (
                 <Volume2 className="h-4 w-4" />
               ) : (
                 <VolumeX className="h-4 w-4" />
               )}
+              Szum
             </Button>
 
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setTtsEnabled(!ttsEnabled)}
+              className="gap-1.5"
             >
-              {ttsEnabled ? "🔊 Głos ATC" : "🔇 Głos ATC"}
+              {ttsEnabled ? "🔊" : "🔇"} ATC
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleVoiceMode}
-            >
-              {voiceMode ? "⌨️ Przełącz na tekst" : "🎙️ Przełącz na głos"}
-            </Button>
-
-            <Button variant="outline" size="sm" onClick={resetSession}>
-              <RotateCcw className="h-4 w-4 mr-1" />
-              Nowa sesja
+            <Button variant="ghost" size="sm" onClick={resetSession} className="gap-1.5">
+              <RotateCcw className="h-4 w-4" />
+              Reset
             </Button>
           </div>
 
           {/* Chat area */}
-          <Card className="border-2">
+          <Card className="border-2 border-border/50 shadow-xl overflow-hidden">
+            <div className="h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary opacity-60" />
             <CardContent className="p-0">
-              <ScrollArea className="h-[400px] p-4" ref={scrollRef}>
+              <ScrollArea className="h-[420px] p-4" ref={scrollRef}>
                 <div className="space-y-4">
                   {messages.map((msg, i) => (
-                    <div key={i}>
+                    <div
+                      key={i}
+                      className={`chat-message ${msg.role === "pilot" ? "msg-pilot" : ""}`}
+                    >
                       {msg.role === "system" && (
-                        <div className="text-center text-sm text-muted-foreground bg-muted/50 rounded-md p-3 whitespace-pre-line">
+                        <div className="text-center text-sm text-muted-foreground bg-muted/40 rounded-xl p-4 whitespace-pre-line border border-border/50">
                           {msg.text}
                         </div>
                       )}
 
                       {msg.role === "pilot" && (
                         <div className="flex justify-end">
-                          <div className="bg-primary text-primary-foreground rounded-lg rounded-br-none px-4 py-2 max-w-[80%]">
-                            <div className="text-xs opacity-70 mb-1">🛩️ Pilot</div>
+                          <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 max-w-[80%] shadow-md">
+                            <div className="text-xs opacity-70 mb-1 flex items-center gap-1">
+                              <Plane className="h-3 w-3" /> Pilot
+                            </div>
                             {msg.text}
                           </div>
                         </div>
@@ -512,19 +441,21 @@ const RadioPhraseology = () => {
                       {msg.role === "atc" && (
                         <div className="space-y-2">
                           <div className="flex justify-start">
-                            <div className="bg-secondary text-secondary-foreground rounded-lg rounded-bl-none px-4 py-2 max-w-[80%]">
-                              <div className="text-xs opacity-70 mb-1">🗼 ATC</div>
+                            <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%] shadow-md">
+                              <div className="text-xs opacity-70 mb-1 flex items-center gap-1">
+                                <TowerControl className="h-3 w-3" /> ATC
+                              </div>
                               {msg.text}
                             </div>
                           </div>
 
                           {msg.errors && msg.errors.length > 0 && (
-                            <div className="ml-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md text-sm">
-                              <div className="flex items-center gap-1 font-medium text-destructive mb-1">
-                                <AlertTriangle className="h-3 w-3" />
+                            <div className="ml-2 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-sm">
+                              <div className="flex items-center gap-1.5 font-medium text-destructive mb-1.5">
+                                <AlertTriangle className="h-3.5 w-3.5" />
                                 Błędy we frazeologii:
                               </div>
-                              <ul className="list-disc list-inside text-destructive/80">
+                              <ul className="list-disc list-inside text-destructive/80 space-y-0.5">
                                 {msg.errors.map((err, j) => (
                                   <li key={j}>{err}</li>
                                 ))}
@@ -533,14 +464,14 @@ const RadioPhraseology = () => {
                           )}
 
                           {msg.expectedReadback && (
-                            <div className="ml-2 p-2 bg-accent/50 border border-accent rounded-md text-sm">
+                            <div className="ml-2 p-3 bg-accent/50 border border-accent rounded-xl text-sm">
                               <span className="font-medium">Oczekiwany readback: </span>
                               {msg.expectedReadback}
                             </div>
                           )}
 
                           {msg.hint && (
-                            <div className="ml-2 p-2 bg-muted rounded-md text-sm flex items-start gap-1">
+                            <div className="ml-2 p-3 bg-muted rounded-xl text-sm flex items-start gap-2">
                               <Lightbulb className="h-4 w-4 flex-shrink-0 mt-0.5 text-primary" />
                               <span>{msg.hint}</span>
                             </div>
@@ -552,7 +483,7 @@ const RadioPhraseology = () => {
 
                   {loading && (
                     <div className="flex justify-start">
-                      <div className="bg-secondary rounded-lg px-4 py-2 flex items-center gap-2">
+                      <div className="bg-secondary rounded-2xl px-4 py-3 flex items-center gap-2 shadow-md">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span className="text-sm text-muted-foreground">ATC odpowiada...</span>
                       </div>
@@ -561,75 +492,46 @@ const RadioPhraseology = () => {
                 </div>
               </ScrollArea>
 
-              {/* Input area */}
-              <div className="border-t p-4">
-                {voiceMode ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <Button
-                      size="lg"
-                      variant={speech.isListening ? "destructive" : "default"}
-                      onClick={speech.toggle}
-                      disabled={loading}
-                      className="w-32 h-32 rounded-full flex flex-col gap-2"
-                    >
-                      {speech.isListening ? (
-                        <>
-                          <Mic className="h-10 w-10 animate-pulse" />
-                          <span className="text-xs">Mówię...</span>
-                        </>
-                      ) : loading ? (
-                        <>
-                          <Loader2 className="h-10 w-10 animate-spin" />
-                          <span className="text-xs">ATC...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="h-10 w-10" />
-                          <span className="text-xs">Naciśnij i mów</span>
-                        </>
-                      )}
-                    </Button>
-                    {input && (
-                      <p className="text-sm text-muted-foreground italic">"{input}"</p>
+              {/* Voice input area */}
+              <div className="border-t p-6 bg-muted/20">
+                <div className="flex flex-col items-center gap-4">
+                  <Button
+                    ref={micBtnRef}
+                    size="lg"
+                    variant={speech.isListening ? "destructive" : "default"}
+                    onClick={speech.toggle}
+                    disabled={loading}
+                    className="w-28 h-28 rounded-full flex flex-col gap-2 text-lg shadow-lg transition-all duration-300"
+                  >
+                    {speech.isListening ? (
+                      <>
+                        <Mic className="h-9 w-9 animate-pulse" />
+                        <span className="text-[10px] font-medium uppercase tracking-wider">Nadaję...</span>
+                      </>
+                    ) : loading ? (
+                      <>
+                        <Loader2 className="h-9 w-9 animate-spin" />
+                        <span className="text-[10px] font-medium uppercase tracking-wider">ATC...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="h-9 w-9" />
+                        <span className="text-[10px] font-medium uppercase tracking-wider">PTT</span>
+                      </>
                     )}
-                    <p className="text-xs text-muted-foreground">
-                      {speech.isListening
-                        ? "Słucham... mów wyraźnie jak przez radio"
-                        : loading
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center max-w-xs">
+                    {speech.isListening
+                      ? "🔴 Nadaję... mów wyraźnie jak przez radio"
+                      : loading
                         ? "Kontroler odpowiada..."
-                        : "Kliknij mikrofon aby mówić"}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Wpisz korespondencję radiową..."
-                      disabled={loading}
-                      className="flex-1"
-                    />
-                    {speech.supported && (
-                      <Button
-                        variant={speech.isListening ? "destructive" : "outline"}
-                        size="icon"
-                        onClick={speech.toggle}
-                        disabled={loading}
-                        title="Mów"
-                      >
-                        <Mic className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button onClick={sendMessage} disabled={loading || !input.trim()}>
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
+                        : "Naciśnij PTT aby nadawać"}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-        </>
+        </div>
       )}
     </div>
   );
