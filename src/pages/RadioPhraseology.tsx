@@ -285,254 +285,246 @@ const RadioPhraseology = () => {
   };
 
   return (
-    <div className="max-w-4xl space-y-6">
-      {/* Header */}
-      <div ref={headerRef} className="flex items-center gap-4">
-        <div className="relative">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Radio className="h-7 w-7 text-primary" />
+    <div className="w-full flex justify-center">
+      <div className="w-full max-w-3xl space-y-6">
+        {/* Header */}
+        <div ref={headerRef} className="flex items-center gap-4 justify-center text-center">
+          <div className="relative">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Radio className="h-7 w-7 text-primary" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary animate-pulse" />
           </div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary animate-pulse" />
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Frazeologia Radiowa</h1>
+            <p className="text-muted-foreground text-sm">
+              Ćwicz korespondencję pilot–wieża z AI kontrolerem ATC
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Frazeologia Radiowa</h1>
-          <p className="text-muted-foreground text-sm">
-            Ćwicz korespondencję pilot–wieża z AI kontrolerem ATC
-          </p>
-        </div>
-      </div>
 
-      {/* Scenario selection */}
-      {!sessionActive && (
-        <div ref={scenarioCardRef}>
-          <Card className="border-2 border-primary/20 shadow-lg overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-primary via-primary/60 to-primary/0" />
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <Plane className="h-5 w-5" />
-                Wybierz scenariusz
-              </CardTitle>
-              <CardDescription>
-                AI wcieli się w rolę wymagającego kontrolera ATC (ICAO/ULC).
-                Komunikacja odbywa się głosowo — jak przez prawdziwe radio.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Select value={selectedScenario} onValueChange={setSelectedScenario}>
-                <SelectTrigger className="h-12 text-base">
-                  <SelectValue placeholder="Wybierz scenariusz..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {SCENARIOS.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      <span className="font-medium">{s.label}</span>
-                      <span className="text-muted-foreground ml-2 text-xs">{s.description}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {/* Scenario selection */}
+        {!sessionActive && (
+          <div ref={scenarioCardRef}>
+            <Card className="border-2 border-primary/20 shadow-lg overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-primary via-primary/60 to-primary/0" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <Plane className="h-5 w-5" />
+                  Wybierz scenariusz
+                </CardTitle>
+                <CardDescription>
+                  AI wcieli się w rolę kontrolera ATC (ICAO/ULC).
+                  Komunikacja głosowa — jak przez prawdziwe radio.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Select value={selectedScenario} onValueChange={setSelectedScenario}>
+                  <SelectTrigger className="h-12 text-base">
+                    <SelectValue placeholder="Wybierz scenariusz..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SCENARIOS.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        <span className="font-medium">{s.label}</span>
+                        <span className="text-muted-foreground ml-2 text-xs">{s.description}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {selectedScenario && (
-                <div className="p-4 bg-muted/50 rounded-xl border text-sm flex items-start gap-3">
-                  <Radio className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                  <div>
-                    <p className="font-medium mb-1">
-                      {SCENARIOS.find((s) => s.id === selectedScenario)?.label}
-                    </p>
-                    <p className="text-muted-foreground">
-                      {SCENARIOS.find((s) => s.id === selectedScenario)?.description}
-                    </p>
+                {selectedScenario && (
+                  <div className="p-4 bg-muted/50 rounded-xl border text-sm flex items-start gap-3">
+                    <Radio className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <div>
+                      <p className="font-medium mb-1">
+                        {SCENARIOS.find((s) => s.id === selectedScenario)?.label}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {SCENARIOS.find((s) => s.id === selectedScenario)?.description}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 text-sm text-muted-foreground flex items-center gap-2">
-                <Mic className="h-4 w-4 text-primary" />
-                Tryb głosowy z filtrem radiowym — mów jak przez COM radio
-              </div>
+                <Button
+                  onClick={startSession}
+                  disabled={!selectedScenario}
+                  className="w-full h-12 text-base font-semibold gap-2"
+                >
+                  <Radio className="h-5 w-5" />
+                  Rozpocznij sesję radiową
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Active session */}
+        {sessionActive && (
+          <div ref={chatCardRef} className="space-y-4">
+            {/* Controls bar */}
+            <div className="flex items-center gap-2 flex-wrap justify-center">
+              <Badge variant="outline" className="gap-1.5 py-1 px-3">
+                <Radio className="h-3 w-3 text-primary" />
+                {SCENARIOS.find((s) => s.id === selectedScenario)?.label}
+              </Badge>
+
+              <div className="flex-1" />
 
               <Button
-                onClick={startSession}
-                disabled={!selectedScenario}
-                className="w-full h-12 text-base font-semibold gap-2"
+                variant="ghost"
+                size="sm"
+                onClick={radioStatic.toggle}
+                className="gap-1.5"
               >
-                <Radio className="h-5 w-5" />
-                Rozpocznij sesję radiową
+                {radioStatic.isPlaying ? (
+                  <Volume2 className="h-4 w-4" />
+                ) : (
+                  <VolumeX className="h-4 w-4" />
+                )}
+                Szum
               </Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
-      {/* Active session */}
-      {sessionActive && (
-        <div ref={chatCardRef} className="space-y-4">
-          {/* Controls bar */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="gap-1.5 py-1 px-3">
-              <Radio className="h-3 w-3 text-primary" />
-              {SCENARIOS.find((s) => s.id === selectedScenario)?.label}
-            </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTtsEnabled(!ttsEnabled)}
+                className="gap-1.5"
+              >
+                {ttsEnabled ? "🔊" : "🔇"} ATC
+              </Button>
 
-            <Badge variant="secondary" className="gap-1.5 py-1 px-3">
-              <Mic className="h-3 w-3" />
-              Głos + Radio FX
-            </Badge>
+              <Button variant="ghost" size="sm" onClick={resetSession} className="gap-1.5">
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </Button>
+            </div>
 
-            <div className="flex-1" />
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={radioStatic.toggle}
-              className="gap-1.5"
-            >
-              {radioStatic.isPlaying ? (
-                <Volume2 className="h-4 w-4" />
-              ) : (
-                <VolumeX className="h-4 w-4" />
-              )}
-              Szum
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTtsEnabled(!ttsEnabled)}
-              className="gap-1.5"
-            >
-              {ttsEnabled ? "🔊" : "🔇"} ATC
-            </Button>
-
-            <Button variant="ghost" size="sm" onClick={resetSession} className="gap-1.5">
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </Button>
-          </div>
-
-          {/* Chat area */}
-          <Card className="border-2 border-border/50 shadow-xl overflow-hidden">
-            <div className="h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary opacity-60" />
-            <CardContent className="p-0">
-              <ScrollArea className="h-[420px] p-4" ref={scrollRef}>
-                <div className="space-y-4">
-                  {messages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={`chat-message ${msg.role === "pilot" ? "msg-pilot" : ""}`}
-                    >
-                      {msg.role === "system" && (
-                        <div className="text-center text-sm text-muted-foreground bg-muted/40 rounded-xl p-4 whitespace-pre-line border border-border/50">
-                          {msg.text}
-                        </div>
-                      )}
-
-                      {msg.role === "pilot" && (
-                        <div className="flex justify-end">
-                          <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 max-w-[80%] shadow-md">
-                            <div className="text-xs opacity-70 mb-1 flex items-center gap-1">
-                              <Plane className="h-3 w-3" /> Pilot
-                            </div>
+            {/* Chat area */}
+            <Card className="border-2 border-border/50 shadow-xl overflow-hidden">
+              <div className="h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary opacity-60" />
+              <CardContent className="p-0">
+                <ScrollArea className="h-[420px] p-4" ref={scrollRef}>
+                  <div className="space-y-4">
+                    {messages.map((msg, i) => (
+                      <div
+                        key={i}
+                        className={`chat-message ${msg.role === "pilot" ? "msg-pilot" : ""}`}
+                      >
+                        {msg.role === "system" && (
+                          <div className="text-center text-sm text-muted-foreground bg-muted/40 rounded-xl p-4 whitespace-pre-line border border-border/50">
                             {msg.text}
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {msg.role === "atc" && (
-                        <div className="space-y-2">
-                          <div className="flex justify-start">
-                            <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%] shadow-md">
+                        {msg.role === "pilot" && (
+                          <div className="flex justify-end">
+                            <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 max-w-[80%] shadow-md">
                               <div className="text-xs opacity-70 mb-1 flex items-center gap-1">
-                                <TowerControl className="h-3 w-3" /> ATC
+                                <Plane className="h-3 w-3" /> Pilot
                               </div>
                               {msg.text}
                             </div>
                           </div>
+                        )}
 
-                          {msg.errors && msg.errors.length > 0 && (
-                            <div className="ml-2 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-sm">
-                              <div className="flex items-center gap-1.5 font-medium text-destructive mb-1.5">
-                                <AlertTriangle className="h-3.5 w-3.5" />
-                                Błędy we frazeologii:
+                        {msg.role === "atc" && (
+                          <div className="space-y-2">
+                            <div className="flex justify-start">
+                              <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%] shadow-md">
+                                <div className="text-xs opacity-70 mb-1 flex items-center gap-1">
+                                  <TowerControl className="h-3 w-3" /> ATC
+                                </div>
+                                {msg.text}
                               </div>
-                              <ul className="list-disc list-inside text-destructive/80 space-y-0.5">
-                                {msg.errors.map((err, j) => (
-                                  <li key={j}>{err}</li>
-                                ))}
-                              </ul>
                             </div>
-                          )}
 
-                          {msg.expectedReadback && (
-                            <div className="ml-2 p-3 bg-accent/50 border border-accent rounded-xl text-sm">
-                              <span className="font-medium">Oczekiwany readback: </span>
-                              {msg.expectedReadback}
-                            </div>
-                          )}
+                            {msg.errors && msg.errors.length > 0 && (
+                              <div className="ml-2 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-sm">
+                                <div className="flex items-center gap-1.5 font-medium text-destructive mb-1.5">
+                                  <AlertTriangle className="h-3.5 w-3.5" />
+                                  Błędy we frazeologii:
+                                </div>
+                                <ul className="list-disc list-inside text-destructive/80 space-y-0.5">
+                                  {msg.errors.map((err, j) => (
+                                    <li key={j}>{err}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
 
-                          {msg.hint && (
-                            <div className="ml-2 p-3 bg-muted rounded-xl text-sm flex items-start gap-2">
-                              <Lightbulb className="h-4 w-4 flex-shrink-0 mt-0.5 text-primary" />
-                              <span>{msg.hint}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                            {msg.expectedReadback && (
+                              <div className="ml-2 p-3 bg-accent/50 border border-accent rounded-xl text-sm">
+                                <span className="font-medium">Oczekiwany readback: </span>
+                                {msg.expectedReadback}
+                              </div>
+                            )}
 
-                  {loading && (
-                    <div className="flex justify-start">
-                      <div className="bg-secondary rounded-2xl px-4 py-3 flex items-center gap-2 shadow-md">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm text-muted-foreground">ATC odpowiada...</span>
+                            {msg.hint && (
+                              <div className="ml-2 p-3 bg-muted rounded-xl text-sm flex items-start gap-2">
+                                <Lightbulb className="h-4 w-4 flex-shrink-0 mt-0.5 text-primary" />
+                                <span>{msg.hint}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
+                    ))}
 
-              {/* Voice input area */}
-              <div className="border-t p-6 bg-muted/20">
-                <div className="flex flex-col items-center gap-4">
-                  <Button
-                    ref={micBtnRef}
-                    size="lg"
-                    variant={speech.isListening ? "destructive" : "default"}
-                    onClick={speech.toggle}
-                    disabled={loading}
-                    className="w-28 h-28 rounded-full flex flex-col gap-2 text-lg shadow-lg transition-all duration-300"
-                  >
-                    {speech.isListening ? (
-                      <>
-                        <Mic className="h-9 w-9 animate-pulse" />
-                        <span className="text-[10px] font-medium uppercase tracking-wider">Nadaję...</span>
-                      </>
-                    ) : loading ? (
-                      <>
-                        <Loader2 className="h-9 w-9 animate-spin" />
-                        <span className="text-[10px] font-medium uppercase tracking-wider">ATC...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="h-9 w-9" />
-                        <span className="text-[10px] font-medium uppercase tracking-wider">PTT</span>
-                      </>
+                    {loading && (
+                      <div className="flex justify-start">
+                        <div className="bg-secondary rounded-2xl px-4 py-3 flex items-center gap-2 shadow-md">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm text-muted-foreground">ATC odpowiada...</span>
+                        </div>
+                      </div>
                     )}
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center max-w-xs">
-                    {speech.isListening
-                      ? "🔴 Nadaję... mów wyraźnie jak przez radio"
-                      : loading
-                        ? "Kontroler odpowiada..."
-                        : "Naciśnij PTT aby nadawać"}
-                  </p>
+                  </div>
+                </ScrollArea>
+
+                {/* Voice input area */}
+                <div className="border-t p-6 bg-muted/20">
+                  <div className="flex flex-col items-center gap-4">
+                    <Button
+                      ref={micBtnRef}
+                      size="lg"
+                      variant={speech.isListening ? "destructive" : "default"}
+                      onClick={speech.toggle}
+                      disabled={loading}
+                      className="w-28 h-28 rounded-full flex flex-col gap-2 text-lg shadow-lg transition-all duration-300"
+                    >
+                      {speech.isListening ? (
+                        <>
+                          <Mic className="h-9 w-9 animate-pulse" />
+                          <span className="text-[10px] font-medium uppercase tracking-wider">Nadaję...</span>
+                        </>
+                      ) : loading ? (
+                        <>
+                          <Loader2 className="h-9 w-9 animate-spin" />
+                          <span className="text-[10px] font-medium uppercase tracking-wider">ATC...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="h-9 w-9" />
+                          <span className="text-[10px] font-medium uppercase tracking-wider">PTT</span>
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center max-w-xs">
+                      {speech.isListening
+                        ? "🔴 Nadaję... mów wyraźnie jak przez radio"
+                        : loading
+                          ? "Kontroler odpowiada..."
+                          : "Naciśnij PTT aby nadawać"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
