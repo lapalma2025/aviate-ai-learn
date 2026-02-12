@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.generate-explanations]
 verify_jwt = true
+
+[functions.grok-atc]
+verify_jwt = true
