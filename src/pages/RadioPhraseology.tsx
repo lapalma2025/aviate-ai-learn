@@ -189,7 +189,7 @@ const RadioPhraseology = () => {
   useEffect(() => {
     if (sessionActive && micBtnRef.current && !loading && !speech.isListening) {
       const pulse = gsap.to(micBtnRef.current, {
-        boxShadow: "0 0 0 12px hsla(var(--primary) / 0.15)",
+        boxShadow: "0 0 0 12px rgba(59, 130, 246, 0.15)",
         duration: 1.2,
         repeat: -1,
         yoyo: true,
