@@ -11,6 +11,20 @@ import { useRef, useCallback } from "react";
 export function useRadioTTS() {
   const ctxRef = useRef<AudioContext | null>(null);
   const squelchRef = useRef<{ noise: AudioBufferSourceNode; gain: GainNode } | null>(null);
+  const voicesLoaded = useRef(false);
+
+  // Preload voices on mount
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    const loadVoices = () => { 
+      window.speechSynthesis.getVoices(); 
+      voicesLoaded.current = true;
+    };
+    if (window.speechSynthesis.getVoices().length) {
+      voicesLoaded.current = true;
+    } else {
+      window.speechSynthesis.addEventListener("voiceschanged", loadVoices, { once: true });
+    }
+  }
 
   const getOrCreateCtx = useCallback(() => {
     if (!ctxRef.current || ctxRef.current.state === "closed") {
