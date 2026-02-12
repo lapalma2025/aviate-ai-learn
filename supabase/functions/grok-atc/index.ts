@@ -31,13 +31,15 @@ ZASADY KORESPONDENCJI:
 - Jeśli pilot robi coś głupiego (np. próbuje lądować bez zezwolenia), reaguj zdecydowanie
 
 FORMAT ODPOWIEDZI:
-Odpowiadaj TYLKO w formacie JSON (bez markdown, bez backticks):
+Odpowiadaj TYLKO w formacie JSON (bez markdown, bez backticks).
+WAŻNE: WSZYSTKO po polsku — atc_message, pilot_errors, expected_readback, hint — WSZYSTKO wyłącznie w języku polskim. Nigdy nie pisz po angielsku.
+Frazeologia radiowa stosowana w wiadomościach ATC powinna być zgodna z polskimi procedurami ULC/PAŻP (np. "zezwalam na lądowanie", "kołuj do pasu", "zgłoś pozycję").
 {
-  "atc_message": "treść korespondencji radiowej",
-  "pilot_errors": ["lista błędów pilota jeśli były, pusta tablica jeśli brak"],
-  "expected_readback": "czego oczekujesz w readbacku pilota, null jeśli nie wymagany",
+  "atc_message": "treść korespondencji radiowej PO POLSKU",
+  "pilot_errors": ["lista błędów pilota po polsku, pusta tablica jeśli brak"],
+  "expected_readback": "czego oczekujesz w readbacku pilota po polsku, null jeśli nie wymagany",
   "phase_complete": false,
-  "hint": "krótka podpowiedź po polsku dla uczącego się, null jeśli niepotrzebna"
+  "hint": "krótka podpowiedź PO POLSKU dla uczącego się, null jeśli niepotrzebna"
 }`;
 
 serve(async (req) => {
