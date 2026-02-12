@@ -494,40 +494,67 @@ const RadioPhraseology = () => {
                   </div>
                 </ScrollArea>
 
-                {/* Voice input area */}
+                {/* Voice + text input area */}
                 <div className="border-t p-6 bg-muted/20">
                   <div className="flex flex-col items-center gap-4">
-                    <Button
-                      ref={micBtnRef}
-                      size="lg"
-                      variant={speech.isListening ? "destructive" : "default"}
-                      onClick={speech.toggle}
-                      disabled={loading}
-                      className="w-28 h-28 rounded-full flex flex-col gap-2 text-lg shadow-lg transition-all duration-300"
+                    <div className="flex items-center gap-4">
+                      <Button
+                        ref={micBtnRef}
+                        size="lg"
+                        variant={speech.isListening ? "destructive" : "default"}
+                        onClick={speech.toggle}
+                        disabled={loading}
+                        className="w-20 h-20 rounded-full flex flex-col gap-1 text-lg shadow-lg transition-all duration-300"
+                      >
+                        {speech.isListening ? (
+                          <>
+                            <Mic className="h-7 w-7 animate-pulse" />
+                            <span className="text-[9px] font-medium uppercase tracking-wider">Nadaję</span>
+                          </>
+                        ) : loading ? (
+                          <>
+                            <Loader2 className="h-7 w-7 animate-spin" />
+                            <span className="text-[9px] font-medium uppercase tracking-wider">ATC</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="h-7 w-7" />
+                            <span className="text-[9px] font-medium uppercase tracking-wider">PTT</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Text fallback input */}
+                    <form
+                      className="flex w-full max-w-md gap-2"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const input = e.currentTarget.elements.namedItem("pilotInput") as HTMLInputElement;
+                        if (input.value.trim()) {
+                          sendMessageWithText(input.value.trim());
+                          input.value = "";
+                        }
+                      }}
                     >
-                      {speech.isListening ? (
-                        <>
-                          <Mic className="h-9 w-9 animate-pulse" />
-                          <span className="text-[10px] font-medium uppercase tracking-wider">Nadaję...</span>
-                        </>
-                      ) : loading ? (
-                        <>
-                          <Loader2 className="h-9 w-9 animate-spin" />
-                          <span className="text-[10px] font-medium uppercase tracking-wider">ATC...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="h-9 w-9" />
-                          <span className="text-[10px] font-medium uppercase tracking-wider">PTT</span>
-                        </>
-                      )}
-                    </Button>
+                      <input
+                        name="pilotInput"
+                        type="text"
+                        placeholder="Lub wpisz tekst tutaj..."
+                        disabled={loading}
+                        className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                      <Button type="submit" size="sm" disabled={loading} variant="secondary">
+                        Wyślij
+                      </Button>
+                    </form>
+
                     <p className="text-xs text-muted-foreground text-center max-w-xs">
                       {speech.isListening
                         ? "🔴 Nadaję... mów wyraźnie jak przez radio"
                         : loading
                           ? "Kontroler odpowiada..."
-                          : "Naciśnij PTT aby nadawać"}
+                          : "Naciśnij PTT lub wpisz tekst"}
                     </p>
                   </div>
                 </div>
