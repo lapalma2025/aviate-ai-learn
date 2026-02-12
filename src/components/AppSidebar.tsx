@@ -8,6 +8,7 @@ import {
 	Plane,
 	StickyNote,
 	CloudRain,
+	Radio,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -33,6 +34,7 @@ const mainItems = [
 	{ title: "Statystyki", url: "/stats", icon: BarChart3 },
 	{ title: "Części samolotu", url: "/aircraft-parts", icon: Plane },
 	{ title: "Notatki", url: "/notes", icon: StickyNote },
+	{ title: "Frazeologia Radiowa", url: "/radio-phraseology", icon: Radio },
 ];
 
 const adminItems = [{ title: "Panel admina", url: "/admin", icon: Upload }];

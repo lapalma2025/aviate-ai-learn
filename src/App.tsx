@@ -19,6 +19,7 @@ import AircraftParts from "./pages/AircraftParts";
 import Notes from "./pages/Notes";
 import MetarQuiz from "./pages/MetarQuiz";
 import DataMigration from "./pages/DataMigration";
+import RadioPhraseology from "./pages/RadioPhraseology";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -90,6 +91,7 @@ const App = () => {
 								<Route path="/admin" element={<Admin />} />
 								<Route path="/aircraft-parts" element={<AircraftParts />} />
 								<Route path="/notes" element={<Notes />} />
+								<Route path="/radio-phraseology" element={<RadioPhraseology />} />
 								<Route path="/data-migration" element={<DataMigration />} />
 							</Route>
 							<Route path="*" element={<NotFound />} />
