@@ -500,7 +500,15 @@ const RadioPhraseology = () => {
                         ref={micBtnRef}
                         size="lg"
                         variant={speech.isListening ? "destructive" : "default"}
-                        onClick={speech.toggle}
+                        onClick={() => {
+                          if (speech.isListening) {
+                            speech.stop();
+                            radioStatic.start();
+                          } else {
+                            radioStatic.stop();
+                            speech.start();
+                          }
+                        }}
                         disabled={loading}
                         className="w-20 h-20 rounded-full flex flex-col gap-1 text-lg shadow-lg transition-all duration-300"
                       >
