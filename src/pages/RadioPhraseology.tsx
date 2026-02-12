@@ -1,21 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -58,8 +46,7 @@ const SCENARIOS: Scenario[] = [
     id: "startup_taxi",
     label: "Uruchomienie i kołowanie",
     description: "EPWA (Warszawa Okęcie), Cessna 172, SP-KAM",
-    prompt:
-      `Lotnisko: EPWA (Warszawa Okęcie). Znak wywoławczy pilota: SP-KAM. Typ: Cessna 172. Faza lotu: uruchomienie silnika i kołowanie na pas startowy.
+    prompt: `Lotnisko: EPWA (Warszawa Okęcie). Znak wywoławczy pilota: SP-KAM. Typ: Cessna 172. Faza lotu: uruchomienie silnika i kołowanie na pas startowy.
 Pilot powinien: zgłosić się na częstotliwości ground podając callsign, typ, stanowisko, poprosić o zgodę na uruchomienie, potem o warunki pogodowe (pas w użyciu, wiatr, QNH), potem poprosić o kołowanie.
 ATC podaje: pas w użyciu (np. 33), wiatr, widzialność, QNH, instrukcje kołowania z drogami (np. "kołuj do punktu oczekiwania pasa 33 drogami A, C").
 Oczekiwany readback pilota: pas w użyciu, QNH, instrukcje kołowania z drogami i callsign na końcu.
@@ -69,8 +56,7 @@ Częstotliwości: Ground 121.900, Wieża 118.100.`,
     id: "takeoff",
     label: "Start i odlot",
     description: "EPKK (Kraków Balice), PA-28, SP-LTA",
-    prompt:
-      `Lotnisko: EPKK (Kraków-Balice). Znak wywoławczy pilota: SP-LTA. Typ: PA-28 Warrior. Faza: pilot jest w punkcie oczekiwania pasa 25, gotowy do odlotu.
+    prompt: `Lotnisko: EPKK (Kraków-Balice). Znak wywoławczy pilota: SP-LTA. Typ: PA-28 Warrior. Faza: pilot jest w punkcie oczekiwania pasa 25, gotowy do odlotu.
 WAŻNE: Pilot mówi "gotowy do odlotu" (NIGDY "gotowy do startu" — słowa "start/startować" tylko w zezwoleniu ATC).
 ATC może: kazać zająć pas i oczekiwać ("zajmij pas 25 i oczekuj"), potem dać zezwolenie na start z wiatrem.
 Po starcie ATC daje instrukcje odlotowe: "po odlocie kurs pasa, wznoś 3000 stóp, transponder 4521".
@@ -81,8 +67,7 @@ Wiatr 240/8kt, QNH 1013. Boeing 737 na podejściu końcowym — może być opó�
     id: "circuit",
     label: "Lot po kręgu",
     description: "EPPO (Poznań Ławica), Cessna 152, SP-ABC",
-    prompt:
-      `Lotnisko: EPPO (Poznań Ławica). Znak wywoławczy pilota: SP-ABC. Typ: Cessna 152. Faza: lot po kręgu (circuit), lewy kręg, pas 28.
+    prompt: `Lotnisko: EPPO (Poznań Ławica). Znak wywoławczy pilota: SP-ABC. Typ: Cessna 152. Faza: lot po kręgu (circuit), lewy kręg, pas 28.
 Pilot jest na downwindzie i powinien kolejno zgłaszać: downwind, base (z info "podwozie wypuszczone"), prostą (final).
 ATC sekwencjonuje ruch — może kazać przedłużyć downwind lub dać numer w kolejce.
 Przy zezwoleniu na lądowanie ATC podaje wiatr i "zezwalam lądować".
@@ -94,8 +79,7 @@ QNH 1015, wiatr 260/5kt. Częstotliwość wieży 118.300.`,
     id: "landing",
     label: "Podejście i lądowanie",
     description: "EPWR (Wrocław), Diamond DA40, SP-WRC",
-    prompt:
-      `Lotnisko: EPWR (Wrocław). Znak wywoławczy pilota: SP-WRC. Typ: Diamond DA40. Faza: podejście do lądowania.
+    prompt: `Lotnisko: EPWR (Wrocław). Znak wywoławczy pilota: SP-WRC. Typ: Diamond DA40. Faza: podejście do lądowania.
 Pilot zgłasza się: "[lotnisko] wieża, SP-WRC, Diamond DA40, 10 mil na północ od Wrocławia, wysokość 3000 stóp, intencje lądowanie".
 ATC odpowiada: callsign, w kontakcie radarowym, pas w użyciu, QNH, instrukcje zniżania.
 Pilot readbackuje: QNH, pas, przyjąłem, callsign.
@@ -108,8 +92,7 @@ Wiatr 180/12kt porywisty do 20kt, QNH 1008, lekki deszcz. Częstotliwość: Wie�
     id: "emergency",
     label: "Sytuacja awaryjna",
     description: "EPGD (Gdańsk), Cessna 172, SP-MAY",
-    prompt:
-      `Lotnisko: EPGD (Gdańsk). Znak wywoławczy pilota: SP-MAY. Typ: Cessna 172. Faza: sytuacja awaryjna — spadek obrotów silnika.
+    prompt: `Lotnisko: EPGD (Gdańsk). Znak wywoławczy pilota: SP-MAY. Typ: Cessna 172. Faza: sytuacja awaryjna — spadek obrotów silnika.
 Pilot 15 NM na zachód, wysokość 3000 stóp. Powinien nadać:
 "PAN PAN PAN PAN PAN PAN, Gdańsk wieża, SP-MAY, Cessna 172, spadek obrotów silnika, 15 mil na zachód, wysokość 3000 stóp, proszę o wektorowanie do lądowania awaryjnego"
 (lub MAYDAY jeśli sytuacja krytyczna).
@@ -121,8 +104,7 @@ QNH 1020. Częstotliwość: Wieża 118.100.`,
     id: "vfr_transit",
     label: "Przelot przez CTR",
     description: "EPWA CTR, Piper PA-28, SP-FLY",
-    prompt:
-      `Przelot przez strefę kontrolowaną EPWA CTR. Znak wywoławczy pilota: SP-FLY. Typ: Piper PA-28.
+    prompt: `Przelot przez strefę kontrolowaną EPWA CTR. Znak wywoławczy pilota: SP-FLY. Typ: Piper PA-28.
 Pilot zgłasza się na granicy CTR: "[stacja], SP-FLY, Piper PA-28, na granicy CTR od zachodu, wysokość 1500 stóp, proszę o tranzyt ze zachodu na wschód".
 ATC: potwierdza kontakt radarowy, podaje QNH, wyznacza trasę tranzytu, ewentualne ograniczenia wysokości.
 ATC może: kazać utrzymywać konkretną wysokość, podać punkty meldunkowe, informować o ruchu.
@@ -160,11 +142,7 @@ const RadioPhraseology = () => {
   // ─── GSAP Animations ────────────────────────────────────
   useEffect(() => {
     if (headerRef.current) {
-      gsap.fromTo(
-        headerRef.current,
-        { opacity: 0, y: -30 },
-        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
-      );
+      gsap.fromTo(headerRef.current, { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" });
     }
   }, []);
 
@@ -173,7 +151,7 @@ const RadioPhraseology = () => {
       gsap.fromTo(
         scenarioCardRef.current,
         { opacity: 0, y: 40, scale: 0.96 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)" }
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)" },
       );
     }
   }, [sessionActive]);
@@ -183,7 +161,7 @@ const RadioPhraseology = () => {
       gsap.fromTo(
         chatCardRef.current,
         { opacity: 0, scale: 0.92, y: 30 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "power3.out" }
+        { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "power3.out" },
       );
     }
   }, [sessionActive]);
@@ -196,7 +174,7 @@ const RadioPhraseology = () => {
         gsap.fromTo(
           lastMsg,
           { opacity: 0, x: lastMsg.classList.contains("msg-pilot") ? 40 : -40, scale: 0.9 },
-          { opacity: 1, x: 0, scale: 1, duration: 0.4, ease: "power2.out" }
+          { opacity: 1, x: 0, scale: 1, duration: 0.4, ease: "power2.out" },
         );
       }
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -213,7 +191,9 @@ const RadioPhraseology = () => {
         yoyo: true,
         ease: "sine.inOut",
       });
-      return () => { pulse.kill(); };
+      return () => {
+        pulse.kill();
+      };
     }
   }, [sessionActive, loading, speech.isListening]);
 
@@ -342,9 +322,7 @@ const RadioPhraseology = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Frazeologia Radiowa</h1>
-            <p className="text-muted-foreground text-sm">
-              Ćwicz korespondencję pilot–wieża z AI kontrolerem ATC
-            </p>
+            <p className="text-muted-foreground text-sm">Ćwicz korespondencję pilot–wieża z AI kontrolerem ATC</p>
           </div>
         </div>
 
@@ -359,8 +337,7 @@ const RadioPhraseology = () => {
                   Wybierz scenariusz
                 </CardTitle>
                 <CardDescription>
-                  AI wcieli się w rolę kontrolera ATC (ICAO/ULC).
-                  Komunikacja głosowa — jak przez prawdziwe radio.
+                  AI wcieli się w rolę kontrolera ATC. Komunikacja głosowa — jak przez prawdziwe radio.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -382,9 +359,7 @@ const RadioPhraseology = () => {
                   <div className="p-4 bg-muted/50 rounded-xl border text-sm flex items-start gap-3">
                     <Radio className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
                     <div>
-                      <p className="font-medium mb-1">
-                        {SCENARIOS.find((s) => s.id === selectedScenario)?.label}
-                      </p>
+                      <p className="font-medium mb-1">{SCENARIOS.find((s) => s.id === selectedScenario)?.label}</p>
                       <p className="text-muted-foreground">
                         {SCENARIOS.find((s) => s.id === selectedScenario)?.description}
                       </p>
@@ -417,26 +392,12 @@ const RadioPhraseology = () => {
 
               <div className="flex-1" />
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={radioStatic.toggle}
-                className="gap-1.5"
-              >
-                {radioStatic.isPlaying ? (
-                  <Volume2 className="h-4 w-4" />
-                ) : (
-                  <VolumeX className="h-4 w-4" />
-                )}
+              <Button variant="ghost" size="sm" onClick={radioStatic.toggle} className="gap-1.5">
+                {radioStatic.isPlaying ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                 Szum
               </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTtsEnabled(!ttsEnabled)}
-                className="gap-1.5"
-              >
+              <Button variant="ghost" size="sm" onClick={() => setTtsEnabled(!ttsEnabled)} className="gap-1.5">
                 {ttsEnabled ? "🔊" : "🔇"} ATC
               </Button>
 
@@ -453,10 +414,7 @@ const RadioPhraseology = () => {
                 <ScrollArea className="h-[420px] p-4" ref={scrollRef}>
                   <div className="space-y-4">
                     {messages.map((msg, i) => (
-                      <div
-                        key={i}
-                        className={`chat-message ${msg.role === "pilot" ? "msg-pilot" : ""}`}
-                      >
+                      <div key={i} className={`chat-message ${msg.role === "pilot" ? "msg-pilot" : ""}`}>
                         {msg.role === "system" && (
                           <div className="text-center text-sm text-muted-foreground bg-muted/40 rounded-xl p-4 whitespace-pre-line border border-border/50">
                             {msg.text}
