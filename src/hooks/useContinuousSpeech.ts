@@ -4,6 +4,8 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const onResultRef = useRef(onResult);
+  const transcriptRef = useRef("");
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   onResultRef.current = onResult;
 
   const start = useCallback(() => {
@@ -15,38 +17,36 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
       recognitionRef.current.stop();
     }
 
+    transcriptRef.current = "";
+
     const recognition = new SpeechRecognition();
     recognition.lang = "pl-PL";
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    let silenceTimer: ReturnType<typeof setTimeout> | null = null;
-    let fullTranscript = "";
-
     recognition.onresult = (event: any) => {
-      // Collect all final results
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
-          fullTranscript += (fullTranscript ? " " : "") + event.results[i][0].transcript;
+          transcriptRef.current += (transcriptRef.current ? " " : "") + event.results[i][0].transcript;
         }
       }
-      // Reset silence timer — give 2.5s of silence before sending
-      if (silenceTimer) clearTimeout(silenceTimer);
-      silenceTimer = setTimeout(() => {
-        if (fullTranscript.trim()) {
-          onResultRef.current(fullTranscript.trim());
-          fullTranscript = "";
+      // Reset silence timer — auto-send after 2.5s silence
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = setTimeout(() => {
+        if (transcriptRef.current.trim()) {
+          onResultRef.current(transcriptRef.current.trim());
+          transcriptRef.current = "";
         }
         recognition.stop();
       }, 2500);
     };
     recognition.onerror = () => {
-      if (silenceTimer) clearTimeout(silenceTimer);
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       setIsListening(false);
     };
     recognition.onend = () => {
-      if (silenceTimer) clearTimeout(silenceTimer);
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       setIsListening(false);
     };
 
@@ -56,6 +56,12 @@ export function useContinuousSpeech(onResult: (text: string) => void) {
   }, []);
 
   const stop = useCallback(() => {
+    // Send accumulated transcript before stopping
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (transcriptRef.current.trim()) {
+      onResultRef.current(transcriptRef.current.trim());
+      transcriptRef.current = "";
+    }
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
