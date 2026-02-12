@@ -322,7 +322,7 @@ const RadioPhraseology = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Frazeologia Radiowa</h1>
-            <p className="text-muted-foreground text-sm">Ćwicz korespondencję pilot–wieża z AI kontrolerem ATC</p>
+            <p className="text-muted-foreground mt-2 text-sm">Ćwicz korespondencję pilot–wieża z AI kontrolerem ATC</p>
           </div>
         </div>
 
