@@ -131,10 +131,13 @@ const RadioPhraseology = () => {
   const radioStatic = useRadioStatic();
   const radioTTS = useRadioTTS();
 
+  // Keep a ref to sendMessageWithText so the speech callback always calls the latest version
+  const sendRef = useRef<(text: string) => void>(() => {});
+
   // Voice: when speech result arrives, auto-send
   const handleVoiceResult = useCallback((text: string) => {
     if (!text.trim()) return;
-    sendMessageWithText(text);
+    sendRef.current(text);
   }, []);
 
   const speech = useContinuousSpeech(handleVoiceResult);
@@ -228,6 +231,9 @@ const RadioPhraseology = () => {
       return newMsgs;
     });
   };
+
+  // Keep ref in sync so speech callback always uses latest version
+  sendRef.current = sendMessageWithText;
 
   const doSend = async (currentMessages: ChatMessage[], pilotText: string) => {
     setLoading(true);
